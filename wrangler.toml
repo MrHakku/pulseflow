@@ -1,0 +1,11 @@
+name = "pulseflow"
+compatibility_date = "2026-03-01"
+pages_build_output_dir = "public"
+
+[vars]
+ENVIRONMENT = "production"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pulseflow_db"
+database_id = "YOUR_D1_DATABASE_ID"

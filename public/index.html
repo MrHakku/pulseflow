@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulseFlow - Social Media Scheduler & AI Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Top Navbar -->
+    <header
+        class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div
+                class="w-10 h-10 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-bolt text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-tight">PulseFlow</h1>
+                <p class="text-xs text-slate-400">Cloudflare D1 + Pages Backend</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span> Connected to D1
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Left 2 Cols: Composer & Post Queue -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Composer Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <h2 class="text-lg font-semibold flex items-center">
+                    <i class="fa-solid fa-pen-nib text-indigo-400 mr-2"></i> Create & Schedule Post
+                </h2>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-2">Select Target Platforms</label>
+                    <div class="flex flex-wrap gap-2" id="platform-selectors">
+                        <button type="button" onclick="togglePlatform('instagram')" data-platform="instagram"
+                            class="platform-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white border border-indigo-500 transition">Instagram</button>
+                        <button type="button" onclick="togglePlatform('linkedin')" data-platform="linkedin"
+                            class="platform-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700 transition">LinkedIn</button>
+                        <button type="button" onclick="togglePlatform('x')" data-platform="x"
+                            class="platform-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700 transition">X
+                            (Twitter)</button>
+                        <button type="button" onclick="togglePlatform('facebook')" data-platform="facebook"
+                            class="platform-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700 transition">Facebook</button>
+                    </div>
+                </div>
+
+                <div>
+                    <textarea id="post-content" rows="4"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 placeholder-slate-600"
+                        placeholder="What would you like to share today? Type your caption or use AI generator..."></textarea>
+                    <div class="flex justify-between items-center mt-2 text-xs text-slate-500">
+                        <span id="char-count">0 characters</span>
+                        <button onclick="aiGenerate()"
+                            class="text-indigo-400 hover:text-indigo-300 font-medium flex items-center">
+                            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> AI Writer
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Schedule Date & Time</label>
+                        <input type="datetime-local" id="schedule-date"
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <button onclick="savePost('draft')"
+                            class="flex-1 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl transition">Save
+                            Draft</button>
+                        <button onclick="savePost('queue')"
+                            class="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl shadow-lg shadow-indigo-600/30 transition">Add
+                            to Queue</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posts List / Queue -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold flex items-center">
+                        <i class="fa-solid fa-clock text-indigo-400 mr-2"></i> Scheduled Queue & History
+                    </h2>
+                    <button onclick="loadPosts()" class="text-xs text-indigo-400 hover:text-indigo-300"><i
+                            class="fa-solid fa-rotate mr-1"></i> Refresh</button>
+                </div>
+                <div id="posts-container" class="space-y-3">
+                    <div class="text-center py-8 text-slate-500 text-xs">Loading posts from Cloudflare D1...</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Col: System Status & Docs -->
+        <div class="space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <h3 class="font-semibold text-sm flex items-center">
+                    <i class="fa-solid fa-server text-emerald-400 mr-2"></i> Backend Architecture
+                </h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    This app stores all your scheduled posts directly in a serverless SQLite database on Cloudflare D1
+                    via Pages Functions.
+                </p>
+                <div class="space-y-2 pt-2 border-t border-slate-800 text-xs">
+                    <div class="flex justify-between text-slate-400">
+                        <span>Database:</span>
+                        <span class="text-slate-200 font-mono">Cloudflare D1</span>
+                    </div>
+                    <div class="flex justify-between text-slate-400">
+                        <span>API Endpoints:</span>
+                        <span class="text-slate-200 font-mono">/api/posts</span>
+                    </div>
+                    <div class="flex justify-between text-slate-400">
+                        <span>Hosting:</span>
+                        <span class="text-slate-200 font-mono">Cloudflare Pages</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let selectedPlatforms = ['instagram'];
+
+        function togglePlatform(p) {
+            const idx = selectedPlatforms.indexOf(p);
+            if (idx > -1) {
+                if (selectedPlatforms.length > 1) selectedPlatforms.splice(idx, 1);
+            } else {
+                selectedPlatforms.push(p);
+            }
+            document.querySelectorAll('.platform-btn').forEach(btn => {
+                const plat = btn.getAttribute('data-platform');
+                if (selectedPlatforms.includes(plat)) {
+                    btn.className = "platform-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white border border-indigo-500 transition";
+                } else {
+                    btn.className = "platform-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700 transition";
+                }
+            });
+        }
+
+        const contentBox = document.getElementById('post-content');
+        contentBox.addEventListener('input', (e) => {
+            document.getElementById('char-count').innerText = `${e.target.value.length} characters`;
+        });
+
+        function aiGenerate() {
+            const samples = [
+                "🚀 Consistency beats intensity every single time. What are you building today?",
+                "💡 Behind the scenes: We just shipped a major update to make your workflow 10x faster.",
+                "🎯 Stop waiting for perfection. Start before you're ready and iterate along the way."
+            ];
+            contentBox.value = samples[Math.floor(Math.random() * samples.length)];
+            document.getElementById('char-count').innerText = `${contentBox.value.length} characters`;
+        }
+
+        async function loadPosts() {
+            const container = document.getElementById('posts-container');
+            container.innerHTML = '<div class="text-center py-6 text-slate-500 text-xs">Loading...</div>';
+            try {
+                const res = await fetch('/api/posts');
+                const posts = await res.json();
+                if (!posts || posts.length === 0) {
+                    container.innerHTML = '<div class="text-center py-6 text-slate-500 text-xs">No scheduled posts found. Create one above!</div>';
+                    return;
+                }
+                container.innerHTML = posts.map(post => {
+                    let plats = [];
+                    try { plats = JSON.parse(post.platforms); } catch (e) { plats = [post.platforms]; }
+                    return `
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div class="space-y-1">
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/20 text-indigo-400 uppercase">${post.status}</span>
+                                    <span class="text-xs text-slate-400"><i class="fa-regular fa-calendar mr-1"></i>${new Date(post.scheduled_date).toLocaleString()}</span>
+                                </div>
+                                <p class="text-sm text-slate-200">${escapeHtml(post.content)}</p>
+                                <div class="flex gap-1 pt-1">
+                                    ${plats.map(p => `<span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">${p}</span>`).join('')}
+                                </div>
+                            </div>
+                            <button onclick="deletePost('${post.id}')" class="text-slate-500 hover:text-red-400 text-xs p-2 transition"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                container.innerHTML = `<div class="text-center py-6 text-red-400 text-xs">Error loading posts: ${err.message}</div>`;
+            }
+        }
+
+        async function savePost(status) {
+            const content = contentBox.value.trim();
+            const dateInput = document.getElementById('schedule-date').value;
+            if (!content) {
+                alert('Please enter post content.');
+                return;
+            }
+            const scheduled_date = dateInput ? new Date(dateInput).toISOString() : new Date().toISOString();
+
+            try {
+                const res = await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content,
+                        platforms: selectedPlatforms,
+                        status,
+                        scheduled_date
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    contentBox.value = '';
+                    document.getElementById('char-count').innerText = '0 characters';
+                    loadPosts();
+                } else {
+                    alert('Error saving post: ' + data.error);
+                }
+            } catch (err) {
+                alert('Network error: ' + err.message);
+            }
+        }
+
+        async function deletePost(id) {
+            if (!confirm('Are you sure you want to delete this post?')) return;
+            try {
+                await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+                loadPosts();
+            } catch (err) {
+                alert('Error deleting post');
+            }
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // Initialize default datetime to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('schedule-date').value = tomorrow.toISOString().slice(0, 16);
+
+        loadPosts();
+    </script>
+</body>
+
+</html>
