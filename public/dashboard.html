@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,57 +7,568 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
 
     <!-- Top Navbar -->
-    <header
-        class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <a href="/"
-                class="w-10 h-10 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <a href="/" class="w-10 h-10 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <i class="fa-solid fa-bolt text-white text-lg"></i>
             </a>
             <div>
                 <h1 class="font-bold text-lg tracking-tight">PulseFlow Dashboard</h1>
-                <p class="text-xs text-slate-400">Cloudflare D1 + Developer Sandbox</p>
+                <p class="text-xs text-slate-400">Cloudflare D1 + Workers AI</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
             <!-- Developer Mode Toggle -->
-            <div class="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs">
-                <span class="text-slate-400 font-medium">Developer Mode:</span>
+            <div class="hidden sm:flex bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl items-center gap-2 text-xs">
+                <span class="text-slate-400 font-medium">Dev Sandbox:</span>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="dev-mode-toggle" onchange="toggleDevMode()" class="sr-only peer" checked>
-                    <div
-                        class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600">
-                    </div>
+                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                 </label>
             </div>
-            <a href="/"
-                class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
-                <i class="fa-solid fa-house mr-1"></i> Public Home
-            </a>
+            <div id="user-profile-badge" class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
+                <i class="fa-solid fa-user-circle text-indigo-400"></i>
+                <span id="nav-user-name" class="font-medium text-slate-300">Guest</span>
+                <button onclick="openAuthModal()" class="ml-2 px-2 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px]">Sign In</button>
+            </div>
         </div>
     </header>
 
     <!-- Main Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-
+        
         <!-- Left 2 Cols: Composer & Queue -->
         <div class="lg:col-span-2 space-y-6">
-
-            <!-- Developer Simulation Banner (Visible in Dev Mode) -->
-            <div id="dev-sandbox-banner"
-                class="bg-indigo-950/50 border border-indigo-500/30 rounded-2xl p-4 flex items-center justify-between">
+            
+            <!-- Developer Simulation Banner -->
+            <div id="dev-sandbox-banner" class="bg-indigo-950/50 border border-indigo-500/30 rounded-2xl p-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
                         <i class="fa-solid fa-toolbox text-sm"></i>
                     </div>
                     <div>
                         <h3 class="text-xs font-semibold text-indigo-200">Developer Testing Sandbox Active</h3>
-                        <p class="text-[11px] text-slate-400">Instantly simulate publishing queued posts for testing
-                            without waiting for live cron triggers.</p>
+                        <p class="text-[11px] text-slate-400">Instantly simulate publishing queued posts for testing.</p>
                     </div>
                 </div>
-                <button onclick="simulatePublishing()" class="px-3 py-2 bg-indigo-60
+                <button onclick="simulatePublishing()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow transition">
+                    Simulate Publish Now
+                </button>
+            </div>
+
+            <!-- Composer Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold flex items-center">
+                        <i class="fa-solid fa-pen-nib text-indigo-400 mr-2"></i> Create & Schedule Post
+                    </h2>
+                    <button onclick="openLinkModal()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">
+                        + Link Social Account
+                    </button>
+                </div>
+
+                <!-- Unlinked Gate -->
+                <div id="unlinked-gate" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-6 text-center space-y-4">
+                    <div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 mx-auto flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-semibold text-amber-200">Connect a Test Account to Start</h3>
+                        <p class="text-xs text-slate-400 max-w-md mx-auto">
+                            Link a test account instantly using Sandbox mode to test AI captions, image grids, and scheduling.
+                        </p>
+                    </div>
+                    <button onclick="connectSandboxAccount('instagram')" class="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-medium text-xs rounded-xl transition">
+                        <i class="fa-brands fa-instagram mr-1"></i> Connect Instant Sandbox Account
+                    </button>
+                </div>
+
+                <!-- Composer Fields -->
+                <div id="composer-fields" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-2">Target Platforms</label>
+                        <div class="flex flex-wrap gap-2" id="platform-selectors"></div>
+                    </div>
+
+                    <div>
+                        <textarea id="post-content" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 placeholder-slate-600" placeholder="Enter your topic or caption (e.g., Gym membership open for Rs 1000)..."></textarea>
+                        <div class="flex flex-wrap justify-between items-center gap-2 mt-2 text-xs text-slate-500">
+                            <span id="char-count">0 characters</span>
+                            <button onclick="runStudio('all')" class="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-medium flex items-center gap-1 transition">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate AI Caption & Media
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Media Chooser Gallery -->
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="tab-images" onclick="switchMediaTab('images')" class="px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white">
+                                    <i class="fa-regular fa-images mr-1"></i> Images (<span id="img-count">0</span>)
+                                </button>
+                                <button type="button" id="tab-videos" onclick="switchMediaTab('videos')" class="px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-400">
+                                    <i class="fa-solid fa-film mr-1"></i> Videos (<span id="vid-count">0</span>)
+                                </button>
+                            </div>
+                            <span class="text-[11px] text-slate-500">Click any item to select</span>
+                        </div>
+
+                        <div id="images-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="col-span-full text-center py-6 text-xs text-slate-500">Click <strong>Generate AI Caption & Media</strong> above to load images.</div>
+                        </div>
+                        <div id="videos-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="col-span-full text-center py-6 text-xs text-slate-500">Click <strong>Generate AI Caption & Media</strong> above to load videos.</div>
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-800 space-y-2">
+                            <label class="text-xs font-medium text-slate-400">Selected Media URL</label>
+                            <input type="text" id="media-url" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500" placeholder="https://...">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Schedule Date & Time</label>
+                            <input type="datetime-local" id="schedule-date" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div class="flex items-end space-x-2">
+                            <button onclick="savePost('draft')" class="flex-1 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl transition">Save Draft</button>
+                            <button onclick="savePost('queue')" class="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl shadow-lg transition">Add to Queue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posts Queue -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold flex items-center">
+                        <i class="fa-solid fa-clock text-indigo-400 mr-2"></i> Scheduled Queue & History
+                    </h2>
+                    <button onclick="loadPosts()" class="text-xs text-indigo-400 hover:text-indigo-300"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
+                </div>
+                <div id="posts-container" class="space-y-3">
+                    <div class="text-center py-8 text-slate-500 text-xs">Loading queue...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Col: Linked Accounts -->
+        <div class="space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-semibold text-sm flex items-center">
+                        <i class="fa-solid fa-share-nodes text-indigo-400 mr-2"></i> Linked Accounts
+                    </h3>
+                    <button onclick="openLinkModal()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">+ Add</button>
+                </div>
+                <div id="accounts-list" class="space-y-2.5 pt-1">
+                    <div class="text-xs text-slate-500">Checking accounts...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Auth Modal (Sign Up / Login for PulseFlow) -->
+    <div id="auth-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 id="auth-modal-title" class="font-semibold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-user-lock text-indigo-400"></i> Sign In to PulseFlow
+                </h3>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3" id="auth-form-fields">
+                <div id="name-field-group" class="hidden">
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Full Name</label>
+                    <input type="text" id="auth-name" placeholder="John Doe" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Email Address</label>
+                    <input type="email" id="auth-email" placeholder="you@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                </div>
+                <button onclick="submitAuth()" id="auth-submit-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow transition mt-2">
+                    Sign In
+                </button>
+                <div class="text-center pt-2">
+                    <button onclick="toggleAuthMode()" id="auth-toggle-prompt" class="text-xs text-indigo-400 hover:underline">
+                        Don't have an account? Sign up
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link Modal -->
+    <div id="link-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-semibold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-link text-indigo-400"></i> Link Account
+                </h3>
+                <button onclick="closeLinkModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Platform</label>
+                    <select id="link-platform" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                        <option value="instagram">Instagram</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="x">X (Twitter)</option>
+                        <option value="facebook">Facebook</option>
+                    </select>
+                </div>
+                <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-3 text-center space-y-2">
+                    <button onclick="connectSelectedSandbox()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl transition">
+                        <i class="fa-solid fa-bolt mr-1"></i> Connect Instant Sandbox Account
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-end pt-3 border-t border-slate-800">
+                <button onclick="closeLinkModal()" class="px-4 py-2 rounded-xl text-xs bg-slate-800 text-slate-300">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ALL_PLATFORMS = [
+            { id: 'instagram', label: 'Instagram', icon: 'fa-brands fa-instagram' },
+            { id: 'youtube', label: 'YouTube', icon: 'fa-brands fa-youtube' },
+            { id: 'linkedin', label: 'LinkedIn', icon: 'fa-brands fa-linkedin' },
+            { id: 'x', label: 'X (Twitter)', icon: 'fa-brands fa-x-twitter' },
+            { id: 'facebook', label: 'Facebook', icon: 'fa-brands fa-facebook' }
+        ];
+
+        let linkedAccounts = [];
+        let selectedPlatforms = [];
+        let studioImages = [];
+        let studioVideos = [];
+        let isSignupMode = false;
+        let currentUser = JSON.parse(localStorage.getItem('pulseflow_user') || 'null');
+
+        const contentBox = document.getElementById('post-content');
+        const mediaUrlInput = document.getElementById('media-url');
+
+        contentBox.addEventListener('input', (e) => {
+            document.getElementById('char-count').innerText = `${e.target.value.length} characters`;
+        });
+
+        function updateAuthUI() {
+            const badge = document.getElementById('nav-user-name');
+            if (currentUser) {
+                badge.innerText = currentUser.name;
+                document.querySelector('#user-profile-badge button').innerText = 'Sign Out';
+                document.querySelector('#user-profile-badge button').setAttribute('onclick', 'signOut()');
+            } else {
+                badge.innerText = 'Guest';
+                document.querySelector('#user-profile-badge button').innerText = 'Sign In';
+                document.querySelector('#user-profile-badge button').setAttribute('onclick', 'openAuthModal()');
+            }
+        }
+
+        function openAuthModal() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function toggleAuthMode() {
+            isSignupMode = !isSignupMode;
+            document.getElementById('name-field-group').classList.toggle('hidden', !isSignupMode);
+            document.getElementById('auth-modal-title').innerHTML = isSignupMode ? '<i class="fa-solid fa-user-plus text-indigo-400"></i> Create PulseFlow Account' : '<i class="fa-solid fa-user-lock text-indigo-400"></i> Sign In to PulseFlow';
+            document.getElementById('auth-submit-btn').innerText = isSignupMode ? 'Create Account' : 'Sign In';
+            document.getElementById('auth-toggle-prompt').innerText = isSignupMode ? 'Already have an account? Sign in' : "Don't have an account? Sign up";
+        }
+
+        async function submitAuth() {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            const name = document.getElementById('auth-name').value.trim();
+
+            if (!email || !password || (isSignupMode && !name)) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            const endpoint = isSignupMode ? '/api/auth/user/register' : '/api/auth/user/login';
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, name })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    localStorage.setItem('pulseflow_user', JSON.stringify(currentUser));
+                    closeAuthModal();
+                    updateAuthUI();
+                    alert(isSignupMode ? 'Account created successfully!' : 'Signed in successfully!');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Network error: ' + err.message);
+            }
+        }
+
+        function signOut() {
+            localStorage.removeItem('pulseflow_user');
+            currentUser = null;
+            updateAuthUI();
+            alert('Signed out successfully.');
+        }
+
+        function toggleDevMode() {
+            const enabled = document.getElementById('dev-mode-toggle').checked;
+            document.getElementById('dev-sandbox-banner').style.display = enabled ? 'flex' : 'none';
+        }
+
+        async function simulatePublishing() {
+            try {
+                const res = await fetch('/api/sandbox/simulate', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`Developer Sandbox: Successfully simulated publishing ${data.published} post(s)!`);
+                    loadPosts();
+                } else {
+                    alert('Simulation error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Network error: ' + err.message);
+            }
+        }
+
+        function openLinkModal(p = null) {
+            if (p) document.getElementById('link-platform').value = p;
+            document.getElementById('link-modal').classList.remove('hidden');
+        }
+
+        function closeLinkModal() {
+            document.getElementById('link-modal').classList.add('hidden');
+        }
+
+        async function connectSandboxAccount(platform) {
+            try {
+                const res = await fetch('/api/accounts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        platform,
+                        account_name: `@sandbox_${platform}`,
+                        account_id: `sandbox_${Date.now()}`,
+                        access_token: `sandbox_token_${Math.random()}`
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeLinkModal();
+                    loadAccounts();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function connectSelectedSandbox() {
+            const plat = document.getElementById('link-platform').value;
+            await connectSandboxAccount(plat);
+        }
+
+        function switchMediaTab(tab) {
+            const imgBtn = document.getElementById('tab-images');
+            const vidBtn = document.getElementById('tab-videos');
+            const imgGrid = document.getElementById('images-grid');
+            const vidGrid = document.getElementById('videos-grid');
+            if (tab === 'images') {
+                imgBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white';
+                vidBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-400';
+                imgGrid.classList.remove('hidden');
+                vidGrid.classList.add('hidden');
+            } else {
+                vidBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white';
+                imgBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-400';
+                vidGrid.classList.remove('hidden');
+                imgGrid.classList.add('hidden');
+            }
+        }
+
+        function selectMediaItem(url) {
+            mediaUrlInput.value = url;
+        }
+
+        async function runStudio(mode) {
+            const promptText = contentBox.value.trim();
+            if (!promptText) {
+                alert('Enter a topic first (e.g., "Gym membership open for Rs 1000")!');
+                return;
+            }
+            try {
+                const res = await fetch('/api/ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: promptText, mode, platforms: selectedPlatforms })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (data.caption) {
+                        contentBox.value = data.caption;
+                        document.getElementById('char-count').innerText = `${contentBox.value.length} characters`;
+                    }
+                    if (data.images) studioImages = data.images;
+                    if (data.videos) studioVideos = data.videos;
+                    
+                    document.getElementById('img-count').innerText = studioImages.length;
+                    document.getElementById('vid-count').innerText = studioVideos.length;
+
+                    document.getElementById('images-grid').innerHTML = studioImages.map(img => `
+                        <div onclick="selectMediaItem('${img.url}')" class="cursor-pointer rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+                            <img src="${img.url}" class="w-full h-24 object-cover">
+                            <div class="p-1 text-[10px] text-center text-slate-300">${img.label}</div>
+                        </div>
+                    `).join('');
+
+                    document.getElementById('videos-grid').innerHTML = studioVideos.map(vid => `
+                        <div onclick="selectMediaItem('${vid.url}')" class="cursor-pointer rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+                            <video src="${vid.url}" muted class="w-full h-24 object-cover"></video>
+                            <div class="p-1 text-[10px] text-center text-slate-300">${vid.label}</div>
+                        </div>
+                    `).join('');
+
+                    if (studioImages.length > 0) selectMediaItem(studioImages[0].url);
+                }
+            } catch (err) {
+                alert('AI error: ' + err.message);
+            }
+        }
+
+        async function loadAccounts() {
+            try {
+                const res = await fetch('/api/accounts');
+                linkedAccounts = await res.json();
+                const linkedMap = {};
+                linkedAccounts.forEach(a => { linkedMap[a.platform] = a; });
+
+                document.getElementById('accounts-list').innerHTML = ALL_PLATFORMS.map(p => {
+                    const acc = linkedMap[p.id];
+                    if (acc) {
+                        return `<div class="bg-slate-950 border border-emerald-500/30 rounded-xl p-3 flex items-center justify-between">
+                            <div class="flex items-center gap-2"><i class="${p.icon} text-emerald-400"></i><span class="text-xs font-semibold">${p.label} (${acc.account_name})</span></div>
+                            <button onclick="unlinkAccount('${p.id}')" class="text-slate-500 hover:text-red-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+                        </div>`;
+                    }
+                    return `<div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2"><i class="${p.icon} text-slate-500"></i><span class="text-xs text-slate-400">${p.label}</span></div>
+                        <button onclick="openLinkModal('${p.id}')" class="px-2 py-1 bg-slate-800 hover:bg-indigo-600 text-xs rounded-lg transition">Connect</button>
+                    </div>`;
+                }).join('');
+
+                const gate = document.getElementById('unlinked-gate');
+                const fields = document.getElementById('composer-fields');
+                if (linkedAccounts.length === 0) {
+                    gate.classList.remove('hidden');
+                    fields.classList.add('opacity-40', 'pointer-events-none');
+                } else {
+                    gate.classList.add('hidden');
+                    fields.classList.remove('opacity-40', 'pointer-events-none');
+                    selectedPlatforms = [linkedAccounts[0].platform];
+                }
+
+                document.getElementById('platform-selectors').innerHTML = ALL_PLATFORMS.map(p => {
+                    if (!linkedMap[p.id]) return '';
+                    const isSel = selectedPlatforms.includes(p.id);
+                    return `<button onclick="togglePlat('${p.id}')" class="px-3 py-1.5 rounded-lg text-xs font-medium ${isSel ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'}"><i class="${p.icon} mr-1"></i>${p.label}</button>`;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function togglePlat(p) {
+            const idx = selectedPlatforms.indexOf(p);
+            if (idx > -1 && selectedPlatforms.length > 1) selectedPlatforms.splice(idx, 1);
+            else if (idx === -1) selectedPlatforms.push(p);
+            loadAccounts();
+        }
+
+        async function unlinkAccount(p) {
+            await fetch(`/api/accounts/${p}`, { method: 'DELETE' });
+            loadAccounts();
+        }
+
+        async function loadPosts() {
+            const container = document.getElementById('posts-container');
+            try {
+                const res = await fetch('/api/posts');
+                const posts = await res.json();
+                if (!posts || posts.length === 0) {
+                    container.innerHTML = '<div class="text-center py-6 text-slate-500 text-xs">No posts in queue.</div>';
+                    return;
+                }
+                container.innerHTML = posts.map(post => `
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex justify-between items-center">
+                        <div class="space-y-1">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${post.status === 'sent' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-400'} uppercase">${post.status}</span>
+                            <p class="text-xs text-slate-200">${escapeHtml(post.content)}</p>
+                        </div>
+                        <button onclick="deletePost('${post.id}')" class="text-slate-500 hover:text-red-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = '<div class="text-center py-6 text-red-400 text-xs">Error loading posts.</div>';
+            }
+        }
+
+        async function savePost(status) {
+            const content = contentBox.value.trim();
+            if (!content) { alert('Enter content'); return; }
+            try {
+                await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content,
+                        platforms: selectedPlatforms,
+                        status,
+                        scheduled_date: new Date().toISOString(),
+                        media_url: mediaUrlInput.value.trim()
+                    })
+                });
+                contentBox.value = '';
+                mediaUrlInput.value = '';
+                loadPosts();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function deletePost(id) {
+            await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+            loadPosts();
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        (async () => {
+            updateAuthUI();
+            await loadAccounts();
+            await loadPosts();
+        })();
+    </script>
+</body>
+</html>
