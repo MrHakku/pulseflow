@@ -13,3 +13,6 @@ database_id = "56fbe5ac-de37-4b6b-aae6-32fc79ae79e2"
 
 [ai]
 binding = "AI"
+
+[triggers]
+crons = ["*/5 * * * *"] # Checks every 5 minutes for due posts
