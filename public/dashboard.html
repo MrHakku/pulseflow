@@ -190,17 +190,17 @@
                     </select>
                 </div>
 
-                <!-- Popup Login Button for Meta Platforms -->
+                <!-- Popup Login Button -->
                 <div id="popup-oauth-box" class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-3.5 text-center space-y-2">
-                    <div class="text-xs font-medium text-indigo-200">Connect Automatically via Popup Window</div>
+                    <div class="text-xs font-medium text-indigo-200">Connect Automatically via Official Popup Login</div>
                     <button onclick="openOAuthPopup()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow transition">
-                        <i class="fa-solid fa-window-maximize mr-1.5"></i> Connect via Official Login Popup
+                        <i class="fa-solid fa-window-maximize mr-1.5"></i> Connect via Login Popup
                     </button>
                 </div>
 
                 <div class="relative flex py-1 items-center">
                     <div class="flex-grow border-t border-slate-800"></div>
-                    <span class="flex-shrink mx-4 text-slate-500 text-[10px] uppercase tracking-wider">or enter token manually</span>
+                    <span class="flex-shrink mx-4 text-slate-500 text-[10px] uppercase tracking-wider">or enter manually</span>
                     <div class="flex-grow border-t border-slate-800"></div>
                 </div>
 
@@ -240,17 +240,17 @@
             instagram: {
                 nameLabel: 'Instagram Handle (e.g., @yourbrand)',
                 idLabel: 'Instagram Business Account ID (17-digit number)',
-                html: `<strong>Instagram Link Guide:</strong> Switch your IG account to Professional/Business, link a Facebook Page, use <em>Meta Graph API Explorer</em> to generate a token with <code>instagram_content_publish</code>, and paste your 17-digit IG Business ID.`
+                html: `<strong>Instagram Link Guide:</strong> Click popup above to authenticate or use Meta Graph API Explorer to generate a token with <code>instagram_content_publish</code>.`
             },
             youtube: {
                 nameLabel: 'YouTube Channel Name',
                 idLabel: 'YouTube Channel ID (starts with UC...)',
-                html: `<strong>YouTube Link Guide:</strong> Enable <em>YouTube Data API v3</em> in Google Cloud Console, authorize scope <code>https://www.googleapis.com/auth/youtube.upload</code> via OAuth 2.0 Playground, and paste your Channel ID and Access Token.`
+                html: `<strong>YouTube Link Guide:</strong> Click the popup button above to authorize your Google account, or paste your Channel ID and Access Token manually.`
             },
             linkedin: {
                 nameLabel: 'LinkedIn Profile or Page Name',
                 idLabel: 'LinkedIn Member ID or URN',
-                html: `<strong>LinkedIn Link Guide:</strong> Create an app on LinkedIn Developers with <code>w_member_social</code> product enabled and paste your Member ID and OAuth Access Token.`
+                html: `<strong>LinkedIn Link Guide:</strong> Click the popup button above to log in via LinkedIn Developers, or paste your credentials manually.`
             },
             x: {
                 nameLabel: 'X Handle (e.g., @yourhandle)',
@@ -260,7 +260,7 @@
             facebook: {
                 nameLabel: 'Facebook Page Name',
                 idLabel: 'Facebook Page ID',
-                html: `<strong>Facebook Page Link Guide:</strong> Generate a Page Access Token via Meta Graph API Explorer with <code>pages_manage_posts</code> permission and paste your Page ID.`
+                html: `<strong>Facebook Page Link Guide:</strong> Click the popup button above to authorize via Facebook Login.`
             }
         };
 
@@ -304,13 +304,22 @@
             const top = window.screenY + (window.outerHeight - height) / 2;
 
             let authUrl = '';
-            if (platform === 'instagram' || platform === 'facebook') {
-                const clientId = '1234567890'; // Replace with real Meta App ID
-                const redirectUri = window.location.origin + '/api/auth/callback';
+            const redirectUri = window.location.origin + '/api/auth/callback';
+
+            if (platform === 'linkedin') {
+                const clientId = '77fehstffw2ghk';
+                const scope = 'w_member_social openid profile email';
+                authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${platform}`;
+            } else if (platform === 'youtube') {
+                const clientId = '806262079905-uenbjer97skd9v2vbuc577nunf5cloor.apps.googleusercontent.com';
+                const scope = 'https://www.googleapis.com/auth/youtube.upload';
+                authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&state=${platform}`;
+            } else if (platform === 'instagram' || platform === 'facebook') {
+                const clientId = '1234567890';
                 const scope = 'instagram_basic,instagram_content_publish,pages_show_list';
                 authUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code&state=${platform}`;
             } else {
-                alert('Popup OAuth login is configured for Meta/Instagram/Facebook. Please use manual token pasting for YouTube, LinkedIn, and X.');
+                alert('Popup OAuth login is configured for LinkedIn, YouTube, and Meta. Please use manual token pasting for X.');
                 return;
             }
 
