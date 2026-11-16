@@ -17,14 +17,17 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg tracking-tight">PulseFlow</h1>
-                <p class="text-xs text-slate-400">Cloudflare D1 + Workers AI Studio</p>
+                <p class="text-xs text-slate-400">Social Media Scheduler & AI Studio</p>
             </div>
         </div>
-        <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-2 sm:space-x-3">
+            <button onclick="openHelpModal()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+                <i class="fa-regular fa-circle-question text-indigo-400"></i> <span class="hidden sm:inline">Account Setup Help</span>
+            </button>
             <button onclick="openLinkModal()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1.5">
                 <i class="fa-solid fa-link"></i> Link Account
             </button>
-            <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span class="hidden md:inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span> Connected to D1
             </span>
         </div>
@@ -37,10 +40,15 @@
         <div class="lg:col-span-2 space-y-6">
             
             <!-- Composer Card -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4 relative overflow-hidden">
-                <h2 class="text-lg font-semibold flex items-center">
-                    <i class="fa-solid fa-pen-nib text-indigo-400 mr-2"></i> Create & Schedule Post
-                </h2>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold flex items-center">
+                        <i class="fa-solid fa-pen-nib text-indigo-400 mr-2"></i> Create & Schedule Post
+                    </h2>
+                    <button onclick="openHelpModal()" class="text-xs text-slate-400 hover:text-indigo-400">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Need help linking?
+                    </button>
+                </div>
 
                 <!-- Gate Banner shown when 0 accounts are linked -->
                 <div id="unlinked-gate" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-5 text-center space-y-3">
@@ -49,14 +57,19 @@
                     </div>
                     <h3 class="text-sm font-semibold text-amber-200">Link a Social Account to Start</h3>
                     <p class="text-xs text-slate-400 max-w-md mx-auto">
-                        Before creating, generating AI content, or scheduling posts, connect at least one social media account in the panel on the right.
+                        Connect at least one social media profile (Instagram, YouTube, LinkedIn, X, or Facebook) before generating media or scheduling posts.
                     </p>
-                    <button onclick="openLinkModal()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-xl transition">
-                        <i class="fa-solid fa-plus mr-1"></i> Connect Your First Account
-                    </button>
+                    <div class="flex justify-center gap-2">
+                        <button onclick="openLinkModal()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-xl transition">
+                            <i class="fa-solid fa-plus mr-1"></i> Link Your First Account
+                        </button>
+                        <button onclick="openHelpModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs rounded-xl transition">
+                            How to Get Tokens
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Composer Controls (Disabled until at least 1 account is linked) -->
+                <!-- Composer Controls -->
                 <div id="composer-fields" class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-2">
@@ -66,27 +79,65 @@
                     </div>
 
                     <div>
-                        <textarea id="post-content" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 placeholder-slate-600" placeholder="Enter your topic or caption (e.g., Gym membership open for Rs 1000)..."></textarea>
+                        <textarea id="post-content" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 placeholder-slate-600" placeholder="Enter your topic or caption (e.g., Gym membership open for Rs 1000)..."></textarea>
                         <div class="flex flex-wrap justify-between items-center gap-2 mt-2 text-xs text-slate-500">
                             <span id="char-count">0 characters</span>
-                            <div class="flex items-center gap-3">
-                                <label class="inline-flex items-center gap-1.5 text-slate-400 cursor-pointer">
-                                    <input type="checkbox" id="gen-image-check" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0">
-                                    <span>Also generate AI image</span>
-                                </label>
-                                <button id="ai-btn" onclick="aiGenerate()" class="text-indigo-400 hover:text-indigo-300 font-medium flex items-center">
-                                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> AI Writer
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button id="ai-caption-btn" onclick="runStudio('caption')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-400 font-medium flex items-center gap-1 transition">
+                                    <i class="fa-solid fa-pen-fancy"></i> AI Caption
+                                </button>
+                                <button id="ai-media-btn" onclick="runStudio('all')" class="px-3 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-medium flex items-center gap-1 transition">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Generate 4 Images & Videos
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Media URL / AI Generated Image Preview -->
-                    <div class="space-y-2">
-                        <label class="block text-xs font-medium text-slate-400">Image URL (Optional, required for Instagram API)</label>
-                        <input type="text" id="media-url" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500" placeholder="https://example.com/promo.jpg">
-                        <div id="media-preview-wrap" class="hidden pt-2">
-                            <img id="media-preview" src="" alt="Preview" class="max-h-48 rounded-xl border border-slate-800 object-cover">
+                    <!-- Multi-Image & Video Chooser Gallery -->
+                    <div id="media-chooser-section" class="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="tab-images" onclick="switchMediaTab('images')" class="px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white">
+                                    <i class="fa-regular fa-images mr-1"></i> Images (<span id="img-count">0</span>)
+                                </button>
+                                <button type="button" id="tab-videos" onclick="switchMediaTab('videos')" class="px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white">
+                                    <i class="fa-solid fa-film mr-1"></i> Videos / Shorts (<span id="vid-count">0</span>)
+                                </button>
+                            </div>
+                            <span class="text-[11px] text-slate-500">Click any item to select it for your post</span>
+                        </div>
+
+                        <!-- Images Grid -->
+                        <div id="images-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="col-span-full text-center py-6 text-xs text-slate-500">
+                                Type a topic above and click <strong>Generate 4 Images & Videos</strong> to compare options.
+                            </div>
+                        </div>
+
+                        <!-- Videos Grid -->
+                        <div id="videos-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="col-span-full text-center py-6 text-xs text-slate-500">
+                                Click <strong>Generate 4 Images & Videos</strong> to load selectable MP4 clips for YouTube & Reels.
+                            </div>
+                        </div>
+
+                        <!-- Selected Media URL & Live Preview -->
+                        <div class="pt-2 border-t border-slate-800/80 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-medium text-slate-400">Selected Image or Video URL</label>
+                                <button type="button" onclick="clearSelectedMedia()" class="text-[11px] text-slate-500 hover:text-red-400">Clear media</button>
+                            </div>
+                            <input type="text" id="media-url" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500" placeholder="Select from gallery above or paste public HTTPS .jpg / .mp4 URL...">
+                            
+                            <div id="selected-preview-box" class="hidden pt-2 flex items-center gap-4 bg-slate-900/90 p-3 rounded-xl border border-indigo-500/30">
+                                <img id="selected-img-preview" src="" class="hidden w-24 h-24 rounded-lg object-cover border border-slate-700">
+                                <video id="selected-vid-preview" src="" controls muted class="hidden w-40 h-24 rounded-lg object-cover border border-slate-700"></video>
+                                <div class="text-xs space-y-1">
+                                    <span class="inline-block px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-semibold uppercase" id="selected-media-badge">Selected Media</span>
+                                    <p class="text-slate-300 font-medium" id="selected-media-label">Ready to attach to scheduled post</p>
+                                    <p class="text-[11px] text-slate-500">Tip: YouTube & Instagram Reels require an MP4 video URL.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -118,7 +169,7 @@
 
         </div>
 
-        <!-- Right Col: Linked Social Accounts & Status -->
+        <!-- Right Col: Linked Social Accounts & Quick Help -->
         <div class="space-y-6">
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                 <div class="flex items-center justify-between">
@@ -130,19 +181,34 @@
                     </button>
                 </div>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                    Connect your social profiles below. PulseFlow only allows scheduling to verified linked accounts.
+                    Connect your channels below. PulseFlow only allows scheduling to verified linked accounts.
                 </p>
                 <div id="accounts-list" class="space-y-2.5 pt-1">
                     <div class="text-xs text-slate-500">Checking linked accounts...</div>
                 </div>
             </div>
+
+            <!-- Quick Setup Help Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+                <h3 class="font-semibold text-sm flex items-center text-slate-200">
+                    <i class="fa-solid fa-book-open text-indigo-400 mr-2"></i> Quick Linking Guide
+                </h3>
+                <ul class="text-xs text-slate-400 space-y-2.5 leading-relaxed">
+                    <li><strong class="text-slate-200">Instagram:</strong> Switch to a Business/Creator account, link a Facebook Page, and generate a token with <code class="text-indigo-300">instagram_content_publish</code>.</li>
+                    <li><strong class="text-slate-200">YouTube:</strong> Enable <em>YouTube Data API v3</em> in Google Cloud Console and use an OAuth token with <code class="text-indigo-300">youtube.upload</code> scope.</li>
+                    <li><strong class="text-slate-200">Media Rules:</strong> Use public HTTPS URLs so Cloudflare's Cron worker can fetch and publish on schedule.</li>
+                </ul>
+                <button onclick="openHelpModal()" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-indigo-300 font-medium transition">
+                    Open Step-by-Step Instructions
+                </button>
+            </div>
         </div>
 
     </main>
 
-    <!-- Link Account Modal -->
-    <div id="link-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+    <!-- Link Account Modal (With Built-in Platform Help) -->
+    <div id="link-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 my-8">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="font-semibold text-base flex items-center gap-2">
                     <i class="fa-solid fa-link text-indigo-400"></i> Link Social Account
@@ -155,24 +221,29 @@
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Platform</label>
-                    <select id="link-platform" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <select id="link-platform" onchange="updateLinkHelp()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                         <option value="instagram">Instagram (Business / Creator)</option>
+                        <option value="youtube">YouTube (Channel / Shorts)</option>
                         <option value="linkedin">LinkedIn</option>
                         <option value="x">X (Twitter)</option>
                         <option value="facebook">Facebook Page</option>
                     </select>
                 </div>
+
+                <!-- Dynamic Contextual Help Box -->
+                <div id="platform-help-box" class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-3.5 text-xs text-slate-300 space-y-1.5"></div>
+
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Account Handle or Page Name</label>
+                    <label class="block text-xs font-medium text-slate-400 mb-1" id="label-name">Account Handle or Channel Name</label>
                     <input type="text" id="link-name" placeholder="e.g., @ironpulse_gym" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Account / User ID</label>
+                    <label class="block text-xs font-medium text-slate-400 mb-1" id="label-id">Account / Channel ID</label>
                     <input type="text" id="link-id" placeholder="e.g., 17841405822304914" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">API Access Token</label>
-                    <input type="password" id="link-token" placeholder="Paste long-lived access token..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <input type="password" id="link-token" placeholder="Paste your API / OAuth access token..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
             </div>
 
@@ -183,16 +254,94 @@
         </div>
     </div>
 
+    <!-- Dedicated Account Setup Help Modal -->
+    <div id="help-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 my-8">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-semibold text-base flex items-center gap-2">
+                    <i class="fa-regular fa-circle-question text-indigo-400"></i> How to Get Your Account ID & Access Token
+                </h3>
+                <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs text-slate-300 max-h-[65vh] overflow-y-auto pr-1">
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2">
+                    <h4 class="font-semibold text-sm text-pink-400 flex items-center gap-2"><i class="fa-brands fa-instagram"></i> 1. Instagram (Business / Creator)</h4>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-400">
+                        <li>In the Instagram app, switch to a <strong>Professional (Business)</strong> account and link it to a <strong>Facebook Page</strong>.</li>
+                        <li>Go to <strong>developers.facebook.com</strong> &rarr; create a Business App &rarr; open <strong>Graph API Explorer</strong>.</li>
+                        <li>Select permissions <code class="text-indigo-300">instagram_basic</code>, <code class="text-indigo-300">instagram_content_publish</code>, and <code class="text-indigo-300">pages_show_list</code>, then click <strong>Generate Access Token</strong>.</li>
+                        <li>Query <code class="text-indigo-300">me/accounts?fields=instagram_business_account</code> to copy your 17-digit <strong>IG User ID</strong>.</li>
+                    </ol>
+                </div>
+
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2">
+                    <h4 class="font-semibold text-sm text-red-400 flex items-center gap-2"><i class="fa-brands fa-youtube"></i> 2. YouTube (Videos & Shorts)</h4>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-400">
+                        <li>Open <strong>console.cloud.google.com</strong>, create a project, and enable <strong>YouTube Data API v3</strong>.</li>
+                        <li>Go to <strong>OAuth 2.0 Playground</strong> (<code class="text-indigo-300">developers.google.com/oauthplayground</code>), select <strong>YouTube Data API v3 &rarr; .../auth/youtube.upload</strong>, and authorize your Google account.</li>
+                        <li>Exchange the authorization code for an <strong>Access Token</strong>.</li>
+                        <li>Copy your <strong>YouTube Channel ID</strong> (starts with <code class="text-indigo-300">UC...</code>) from YouTube Studio &rarr; Settings &rarr; Advanced Settings.</li>
+                    </ol>
+                </div>
+
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2">
+                    <h4 class="font-semibold text-sm text-sky-400 flex items-center gap-2"><i class="fa-brands fa-linkedin"></i> 3. LinkedIn, X & Facebook</h4>
+                    <p class="text-slate-400">
+                        Create an app in the respective developer portal (<strong>LinkedIn Developers</strong> with <code class="text-indigo-300">w_member_social</code>, or <strong>X Developer Portal</strong> with OAuth 2.0 <code class="text-indigo-300">tweet.write</code>), copy your profile URN/ID and Bearer token, and paste them into <strong>Link Account</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                <button onclick="closeHelpModal(); openLinkModal();" class="px-4 py-2 rounded-xl text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium">Link an Account Now</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const ALL_PLATFORMS = [
             { id: 'instagram', label: 'Instagram', icon: 'fa-brands fa-instagram' },
+            { id: 'youtube', label: 'YouTube', icon: 'fa-brands fa-youtube' },
             { id: 'linkedin', label: 'LinkedIn', icon: 'fa-brands fa-linkedin' },
             { id: 'x', label: 'X (Twitter)', icon: 'fa-brands fa-x-twitter' },
             { id: 'facebook', label: 'Facebook', icon: 'fa-brands fa-facebook' }
         ];
 
+        const PLATFORM_HELP = {
+            instagram: {
+                nameLabel: 'Instagram Handle (e.g., @yourbrand)',
+                idLabel: 'Instagram Business Account ID (17-digit number)',
+                html: `<strong>Instagram Setup Tip:</strong> Link your Instagram Business account to a Facebook Page, open <em>Meta Graph API Explorer</em> with <code>instagram_content_publish</code> permission, and paste your <strong>IG User ID</strong> and <strong>Access Token</strong>.`
+            },
+            youtube: {
+                nameLabel: 'YouTube Channel Name (e.g., PulseFlow TV)',
+                idLabel: 'YouTube Channel ID (starts with UC...)',
+                html: `<strong>YouTube Setup Tip:</strong> Enable <em>YouTube Data API v3</em> in Google Cloud Console, authorize scope <code>https://www.googleapis.com/auth/youtube.upload</code> in Google OAuth Playground, and paste your <strong>Channel ID</strong> and <strong>Access Token</strong>. (Requires an MP4 video selection).`
+            },
+            linkedin: {
+                nameLabel: 'LinkedIn Profile or Page Name',
+                idLabel: 'LinkedIn Member ID or Organization URN',
+                html: `<strong>LinkedIn Setup Tip:</strong> Create an app on <em>linkedin.com/developers</em> with the <strong>Share on LinkedIn</strong> (<code>w_member_social</code>) product enabled and paste your Member ID and OAuth 2.0 Access Token.`
+            },
+            x: {
+                nameLabel: 'X (Twitter) Handle (e.g., @yourhandle)',
+                idLabel: 'X User ID (numeric)',
+                html: `<strong>X Setup Tip:</strong> Create a project in the <em>X Developer Portal</em> with Read and Write permissions enabled and paste your User ID and OAuth 2.0 User Access Token.`
+            },
+            facebook: {
+                nameLabel: 'Facebook Page Name',
+                idLabel: 'Facebook Page ID',
+                html: `<strong>Facebook Page Tip:</strong> Generate a <strong>Page Access Token</strong> via <em>Meta Graph API Explorer</em> with <code>pages_manage_posts</code> permission and paste your Page ID.`
+            }
+        };
+
         let linkedAccounts = [];
         let selectedPlatforms = [];
+        let studioImages = [];
+        let studioVideos = [];
 
         const contentBox = document.getElementById('post-content');
         const mediaUrlInput = document.getElementById('media-url');
@@ -202,26 +351,181 @@
         });
 
         mediaUrlInput.addEventListener('input', (e) => {
-            const val = e.target.value.trim();
-            const wrap = document.getElementById('media-preview-wrap');
-            const img = document.getElementById('media-preview');
-            if (val) {
-                img.src = val;
-                wrap.classList.remove('hidden');
-            } else {
-                wrap.classList.add('hidden');
-            }
+            selectMediaItem(e.target.value.trim(), 'Custom Media URL');
         });
+
+        function updateLinkHelp() {
+            const plat = document.getElementById('link-platform').value;
+            const info = PLATFORM_HELP[plat] || PLATFORM_HELP.instagram;
+            document.getElementById('label-name').innerText = info.nameLabel;
+            document.getElementById('label-id').innerText = info.idLabel;
+            document.getElementById('platform-help-box').innerHTML = info.html;
+        }
 
         function openLinkModal(presetPlatform = null) {
             if (presetPlatform) {
                 document.getElementById('link-platform').value = presetPlatform;
             }
+            updateLinkHelp();
             document.getElementById('link-modal').classList.remove('hidden');
         }
 
         function closeLinkModal() {
             document.getElementById('link-modal').classList.add('hidden');
+        }
+
+        function openHelpModal() {
+            document.getElementById('help-modal').classList.remove('hidden');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('help-modal').classList.add('hidden');
+        }
+
+        function switchMediaTab(tab) {
+            const imgBtn = document.getElementById('tab-images');
+            const vidBtn = document.getElementById('tab-videos');
+            const imgGrid = document.getElementById('images-grid');
+            const vidGrid = document.getElementById('videos-grid');
+
+            if (tab === 'images') {
+                imgBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white';
+                vidBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white';
+                imgGrid.classList.remove('hidden');
+                vidGrid.classList.add('hidden');
+            } else {
+                vidBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white';
+                imgBtn.className = 'px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white';
+                vidGrid.classList.remove('hidden');
+                imgGrid.classList.add('hidden');
+            }
+        }
+
+        function selectMediaItem(url, label = 'Selected Media') {
+            mediaUrlInput.value = url;
+            const box = document.getElementById('selected-preview-box');
+            const imgEl = document.getElementById('selected-img-preview');
+            const vidEl = document.getElementById('selected-vid-preview');
+            const labelEl = document.getElementById('selected-media-label');
+
+            if (!url) {
+                box.classList.add('hidden');
+                return;
+            }
+
+            const isVid = /\.(mp4|mov|webm|m4v)(\?.*)?$/i.test(url) || url.startsWith('data:video/');
+            labelEl.innerText = label;
+            box.classList.remove('hidden');
+
+            if (isVid) {
+                imgEl.classList.add('hidden');
+                vidEl.src = url;
+                vidEl.classList.remove('hidden');
+            } else {
+                vidEl.classList.add('hidden');
+                imgEl.src = url;
+                imgEl.classList.remove('hidden');
+            }
+            renderMediaGalleries();
+        }
+
+        function clearSelectedMedia() {
+            selectMediaItem('', '');
+        }
+
+        function renderMediaGalleries() {
+            const currentUrl = mediaUrlInput.value.trim();
+            document.getElementById('img-count').innerText = studioImages.length;
+            document.getElementById('vid-count').innerText = studioVideos.length;
+
+            const imgGrid = document.getElementById('images-grid');
+            if (studioImages.length > 0) {
+                imgGrid.innerHTML = studioImages.map(item => {
+                    const active = currentUrl === item.url;
+                    return `
+                        <div onclick="selectMediaItem('${item.url}', '${item.label}')" class="cursor-pointer group relative rounded-xl overflow-hidden border-2 ${active ? 'border-indigo-500 ring-2 ring-indigo-500/40' : 'border-slate-800 hover:border-slate-600'} bg-slate-900">
+                            <img src="${item.url}" alt="${item.label}" class="w-full h-28 object-cover">
+                            <div class="p-1.5 flex items-center justify-between text-[10px] bg-slate-950/90">
+                                <span class="text-slate-300 font-medium">${item.label}</span>
+                                ${active ? '<i class="fa-solid fa-circle-check text-indigo-400"></i>' : '<span class="text-slate-500 group-hover:text-indigo-300">Select</span>'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const vidGrid = document.getElementById('videos-grid');
+            if (studioVideos.length > 0) {
+                vidGrid.innerHTML = studioVideos.map(item => {
+                    const active = currentUrl === item.url;
+                    return `
+                        <div onclick="selectMediaItem('${item.url}', '${item.label}')" class="cursor-pointer group relative rounded-xl overflow-hidden border-2 ${active ? 'border-indigo-500 ring-2 ring-indigo-500/40' : 'border-slate-800 hover:border-slate-600'} bg-slate-900">
+                            <video src="${item.url}" muted loop onmouseover="this.play()" onmouseout="this.pause()" class="w-full h-32 object-cover bg-black"></video>
+                            <div class="p-2 flex items-center justify-between text-[11px] bg-slate-950/90">
+                                <span class="text-slate-300 font-medium truncate">${item.label}</span>
+                                ${active ? '<i class="fa-solid fa-circle-check text-indigo-400"></i>' : '<span class="text-indigo-400 font-medium">Use Video</span>'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        async function runStudio(mode) {
+            const promptText = contentBox.value.trim();
+            if (!promptText) {
+                alert('Enter a topic first (e.g., "Gym membership open for Rs 1000") so AI can generate captions, 4 images, and video options!');
+                return;
+            }
+
+            const capBtn = document.getElementById('ai-caption-btn');
+            const mediaBtn = document.getElementById('ai-media-btn');
+            capBtn.disabled = true;
+            mediaBtn.disabled = true;
+            mediaBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating 4 Images & Videos...';
+
+            try {
+                const res = await fetch('/api/ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: promptText,
+                        mode,
+                        platforms: selectedPlatforms
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (data.caption) {
+                        contentBox.value = data.caption;
+                        document.getElementById('char-count').innerText = `${contentBox.value.length} characters`;
+                    }
+                    if (data.images && data.images.length > 0) {
+                        studioImages = data.images;
+                    }
+                    if (data.videos && data.videos.length > 0) {
+                        studioVideos = data.videos;
+                    }
+                    renderMediaGalleries();
+
+                    // Auto-switch to Videos tab if YouTube is selected, otherwise auto-select first image
+                    if (selectedPlatforms.includes('youtube') && studioVideos.length > 0) {
+                        switchMediaTab('videos');
+                        if (!mediaUrlInput.value) selectMediaItem(studioVideos[0].url, studioVideos[0].label);
+                    } else if (studioImages.length > 0 && !mediaUrlInput.value) {
+                        switchMediaTab('images');
+                        selectMediaItem(studioImages[0].url, studioImages[0].label);
+                    }
+                } else {
+                    alert('Studio Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Request failed: ' + err.message);
+            } finally {
+                capBtn.disabled = false;
+                mediaBtn.disabled = false;
+                mediaBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate 4 Images & Videos';
+            }
         }
 
         async function loadAccounts() {
@@ -238,7 +542,6 @@
             const linkedMap = {};
             linkedAccounts.forEach(a => { linkedMap[a.platform] = a; });
 
-            // 1. Update Right Sidebar Accounts List
             const listEl = document.getElementById('accounts-list');
             listEl.innerHTML = ALL_PLATFORMS.map(p => {
                 const acc = linkedMap[p.id];
@@ -274,7 +577,6 @@
                 `;
             }).join('');
 
-            // 2. Enforce Gate in Composer if 0 accounts are linked
             const gateEl = document.getElementById('unlinked-gate');
             const fieldsEl = document.getElementById('composer-fields');
             if (linkedAccounts.length === 0) {
@@ -284,14 +586,12 @@
             } else {
                 gateEl.classList.add('hidden');
                 fieldsEl.classList.remove('opacity-40', 'pointer-events-none');
-                // Keep only linked platforms selected; default to first linked account
                 selectedPlatforms = selectedPlatforms.filter(p => linkedMap[p]);
                 if (selectedPlatforms.length === 0) {
                     selectedPlatforms = [linkedAccounts[0].platform];
                 }
             }
 
-            // 3. Render Platform Selector Buttons
             const selectorEl = document.getElementById('platform-selectors');
             selectorEl.innerHTML = ALL_PLATFORMS.map(p => {
                 const isLinked = !!linkedMap[p.id];
@@ -318,6 +618,9 @@
             } else {
                 selectedPlatforms.push(p);
             }
+            if (selectedPlatforms.includes('youtube')) {
+                switchMediaTab('videos');
+            }
             renderAccountsUI();
         }
 
@@ -328,7 +631,7 @@
             const access_token = document.getElementById('link-token').value.trim();
 
             if (!account_name || !account_id || !access_token) {
-                alert('Please fill in Account Name, Account ID, and Access Token.');
+                alert('Please fill in Account Name, Account/Channel ID, and Access Token.');
                 return;
             }
 
@@ -354,51 +657,9 @@
         }
 
         async function unlinkAccount(platform) {
-            if (!confirm(`Disconnect ${platform}? Scheduled posts for this platform will pause until re-linked.`)) return;
+            if (!confirm(`Disconnect ${platform}?`)) return;
             await fetch(`/api/accounts/${platform}`, { method: 'DELETE' });
             await loadAccounts();
-        }
-
-        async function aiGenerate() {
-            const promptText = contentBox.value.trim();
-            if (!promptText) {
-                alert('Type a short topic in the box first (e.g., "Gym membership open for Rs 1000") so AI knows what to write!');
-                return;
-            }
-
-            const btn = document.getElementById('ai-btn');
-            const generateImage = document.getElementById('gen-image-check').checked;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Generating...';
-
-            try {
-                const res = await fetch('/api/ai', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        prompt: promptText,
-                        generateImage,
-                        platforms: selectedPlatforms
-                    })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    contentBox.value = data.caption;
-                    document.getElementById('char-count').innerText = `${contentBox.value.length} characters`;
-                    if (data.media_url) {
-                        mediaUrlInput.value = data.media_url;
-                        document.getElementById('media-preview').src = data.media_url;
-                        document.getElementById('media-preview-wrap').classList.remove('hidden');
-                    }
-                } else {
-                    alert('AI Error: ' + data.error);
-                }
-            } catch (err) {
-                alert('AI Request Failed: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> AI Writer';
-            }
         }
 
         async function loadPosts() {
@@ -413,16 +674,24 @@
                 container.innerHTML = posts.map(post => {
                     let plats = [];
                     try { plats = JSON.parse(post.platforms); } catch(e) { plats = [post.platforms]; }
+                    const isVid = post.media_url && /\.(mp4|mov|webm|m4v)(\?.*)?$/i.test(post.media_url);
                     return `
                         <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div class="space-y-1.5">
-                                <div class="flex items-center space-x-2">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${post.status === 'sent' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-400'} uppercase">${post.status}</span>
-                                    <span class="text-xs text-slate-400"><i class="fa-regular fa-calendar mr-1"></i>${new Date(post.scheduled_date).toLocaleString()}</span>
-                                </div>
-                                <p class="text-sm text-slate-200 whitespace-pre-line">${escapeHtml(post.content)}</p>
-                                <div class="flex gap-1 pt-1">
-                                    ${plats.map(p => `<span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 uppercase">${p}</span>`).join('')}
+                            <div class="flex items-start gap-3">
+                                ${post.media_url ? (
+                                    isVid
+                                        ? `<video src="${post.media_url}" muted class="w-16 h-16 rounded-lg object-cover border border-slate-800 shrink-0"></video>`
+                                        : `<img src="${post.media_url}" class="w-16 h-16 rounded-lg object-cover border border-slate-800 shrink-0">`
+                                ) : ''}
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${post.status === 'sent' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-400'} uppercase">${post.status}</span>
+                                        <span class="text-xs text-slate-400"><i class="fa-regular fa-calendar mr-1"></i>${new Date(post.scheduled_date).toLocaleString()}</span>
+                                    </div>
+                                    <p class="text-sm text-slate-200 whitespace-pre-line">${escapeHtml(post.content)}</p>
+                                    <div class="flex gap-1 pt-1">
+                                        ${plats.map(p => `<span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 uppercase">${p}</span>`).join('')}
+                                    </div>
                                 </div>
                             </div>
                             <button onclick="deletePost('${post.id}')" class="text-slate-500 hover:text-red-400 text-xs p-2 transition"><i class="fa-solid fa-trash"></i></button>
@@ -465,8 +734,7 @@
                 const data = await res.json();
                 if (data.success) {
                     contentBox.value = '';
-                    mediaUrlInput.value = '';
-                    document.getElementById('media-preview-wrap').classList.add('hidden');
+                    clearSelectedMedia();
                     document.getElementById('char-count').innerText = '0 characters';
                     loadPosts();
                 } else {
