@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
 
     <!-- Top Navbar -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+    <header
+        class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <a href="/" class="w-10 h-10 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <a href="/"
+                class="w-10 h-10 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <i class="fa-solid fa-bolt text-white text-lg"></i>
             </a>
             <div>
@@ -21,20 +25,24 @@
             </div>
         </div>
         <div class="flex items-center space-x-3">
-            <div id="user-profile-badge" class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
+            <div id="user-profile-badge"
+                class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
                 <i class="fa-solid fa-user-circle text-indigo-400"></i>
                 <span id="nav-user-name" class="font-medium text-slate-300">Guest</span>
-                <button onclick="openAuthModal()" class="ml-2 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium">Sign In</button>
+                <button onclick="openAuthModal()"
+                    class="ml-2 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium">Sign
+                    In</button>
             </div>
         </div>
     </header>
 
     <!-- Main Container (Locked until signed in) -->
-    <main id="app-main-container" class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8 opacity-25 pointer-events-none filter blur-sm transition-all duration-300">
-        
+    <main id="app-main-container"
+        class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8 opacity-25 pointer-events-none filter blur-sm transition-all duration-300">
+
         <!-- Left 2 Cols: Composer & Queue -->
         <div class="lg:col-span-2 space-y-6">
-            
+
             <!-- Composer Card -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                 <div class="flex items-center justify-between">
@@ -56,10 +64,13 @@
                     </div>
 
                     <div>
-                        <textarea id="post-content" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 placeholder-slate-600" placeholder="Enter your topic or caption..."></textarea>
+                        <textarea id="post-content" rows="3"
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 placeholder-slate-600"
+                            placeholder="Enter your topic or caption..."></textarea>
                         <div class="flex flex-wrap justify-between items-center gap-2 mt-2 text-xs text-slate-500">
                             <span id="char-count">0 characters</span>
-                            <button onclick="runStudio('all')" class="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-medium flex items-center gap-1 transition">
+                            <button onclick="runStudio('all')"
+                                class="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-medium flex items-center gap-1 transition">
                                 <i class="fa-solid fa-wand-magic-sparkles"></i> Generate AI Caption & Media
                             </button>
                         </div>
@@ -69,10 +80,12 @@
                     <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
-                                <button type="button" id="tab-images" onclick="switchMediaTab('images')" class="px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white">
+                                <button type="button" id="tab-images" onclick="switchMediaTab('images')"
+                                    class="px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white">
                                     <i class="fa-regular fa-images mr-1"></i> Images (<span id="img-count">0</span>)
                                 </button>
-                                <button type="button" id="tab-videos" onclick="switchMediaTab('videos')" class="px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-400">
+                                <button type="button" id="tab-videos" onclick="switchMediaTab('videos')"
+                                    class="px-3 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-400">
                                     <i class="fa-solid fa-film mr-1"></i> Videos (<span id="vid-count">0</span>)
                                 </button>
                             </div>
@@ -80,26 +93,35 @@
                         </div>
 
                         <div id="images-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <div class="col-span-full text-center py-6 text-xs text-slate-500">Click generate above to load images.</div>
+                            <div class="col-span-full text-center py-6 text-xs text-slate-500">Click generate above to
+                                load images.</div>
                         </div>
                         <div id="videos-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="col-span-full text-center py-6 text-xs text-slate-500">Click generate above to load videos.</div>
+                            <div class="col-span-full text-center py-6 text-xs text-slate-500">Click generate above to
+                                load videos.</div>
                         </div>
 
                         <div class="pt-2 border-t border-slate-800 space-y-2">
                             <label class="text-xs font-medium text-slate-400">Selected Media URL</label>
-                            <input type="text" id="media-url" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500" placeholder="https://...">
+                            <input type="text" id="media-url"
+                                class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+                                placeholder="https://...">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Schedule Date & Time</label>
-                            <input type="datetime-local" id="schedule-date" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                            <input type="datetime-local" id="schedule-date"
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                         </div>
                         <div class="flex items-end space-x-2">
-                            <button onclick="savePost('draft')" class="flex-1 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl transition">Save Draft</button>
-                            <button onclick="savePost('queue')" class="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl shadow-lg transition">Add to Queue</button>
+                            <button onclick="savePost('draft')"
+                                class="flex-1 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl transition">Save
+                                Draft</button>
+                            <button onclick="savePost('queue')"
+                                class="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl shadow-lg transition">Add
+                                to Queue</button>
                         </div>
                     </div>
                 </div>
@@ -111,7 +133,8 @@
                     <h2 class="text-lg font-semibold flex items-center">
                         <i class="fa-solid fa-clock text-indigo-400 mr-2"></i> Scheduled Queue & History
                     </h2>
-                    <button onclick="loadPosts()" class="text-xs text-indigo-400 hover:text-indigo-300"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
+                    <button onclick="loadPosts()" class="text-xs text-indigo-400 hover:text-indigo-300"><i
+                            class="fa-solid fa-rotate mr-1"></i> Refresh</button>
                 </div>
                 <div id="posts-container" class="space-y-3">
                     <div class="text-center py-8 text-slate-500 text-xs">Loading queue...</div>
@@ -126,7 +149,8 @@
                     <h3 class="font-semibold text-sm flex items-center">
                         <i class="fa-solid fa-share-nodes text-indigo-400 mr-2"></i> Linked Accounts
                     </h3>
-                    <button onclick="openLinkModal()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">+ Add</button>
+                    <button onclick="openLinkModal()"
+                        class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">+ Add</button>
                 </div>
                 <div id="accounts-list" class="space-y-2.5 pt-1">
                     <div class="text-xs text-slate-500">Please sign in to view linked accounts.</div>
@@ -136,7 +160,8 @@
     </main>
 
     <!-- Auth Modal (Sign Up / Login) -->
-    <div id="auth-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div id="auth-modal"
+        class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 id="auth-modal-title" class="font-semibold text-base flex items-center gap-2">
@@ -147,21 +172,26 @@
                 <p class="text-xs text-slate-400">Please sign in or create an account to start scheduling posts.</p>
                 <div id="name-field-group" class="hidden">
                     <label class="block text-xs font-medium text-slate-400 mb-1">Full Name</label>
-                    <input type="text" id="auth-name" placeholder="John Doe" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="auth-name" placeholder="John Doe"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Email Address</label>
-                    <input type="text" id="auth-email" placeholder="you@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="auth-email" placeholder="you@example.com"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
-                    <input type="password" id="auth-password" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <input type="password" id="auth-password" placeholder="••••••••"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
-                <button onclick="submitAuth()" id="auth-submit-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow transition mt-2">
+                <button onclick="submitAuth()" id="auth-submit-btn"
+                    class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow transition mt-2">
                     Sign In
                 </button>
                 <div class="text-center pt-2">
-                    <button onclick="toggleAuthMode()" id="auth-toggle-prompt" class="text-xs text-indigo-400 hover:underline">
+                    <button onclick="toggleAuthMode()" id="auth-toggle-prompt"
+                        class="text-xs text-indigo-400 hover:underline">
                         Don't have an account? Sign up
                     </button>
                 </div>
@@ -170,18 +200,22 @@
     </div>
 
     <!-- Link Modal with Popup OAuth & Manual Options -->
-    <div id="link-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <div id="link-modal"
+        class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div
+            class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="font-semibold text-base flex items-center gap-2">
                     <i class="fa-solid fa-link text-indigo-400"></i> Link Social Account
                 </h3>
-                <button onclick="closeLinkModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeLinkModal()" class="text-slate-400 hover:text-white"><i
+                        class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Platform</label>
-                    <select id="link-platform" onchange="updateLinkHelp()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <select id="link-platform" onchange="updateLinkHelp()"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                         <option value="instagram">Instagram</option>
                         <option value="youtube">YouTube</option>
                         <option value="linkedin">LinkedIn</option>
@@ -191,38 +225,51 @@
                 </div>
 
                 <!-- Popup Login Button -->
-                <div id="popup-oauth-box" class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-3.5 text-center space-y-2">
-                    <div class="text-xs font-medium text-indigo-200">Connect Automatically via Official Popup Login</div>
-                    <button onclick="openOAuthPopup()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow transition">
+                <div id="popup-oauth-box"
+                    class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-3.5 text-center space-y-2">
+                    <div class="text-xs font-medium text-indigo-200">Connect Automatically via Official Popup Login
+                    </div>
+                    <button onclick="openOAuthPopup()"
+                        class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow transition">
                         <i class="fa-solid fa-window-maximize mr-1.5"></i> Connect via Login Popup
                     </button>
                 </div>
 
                 <div class="relative flex py-1 items-center">
                     <div class="flex-grow border-t border-slate-800"></div>
-                    <span class="flex-shrink mx-4 text-slate-500 text-[10px] uppercase tracking-wider">or enter manually</span>
+                    <span class="flex-shrink mx-4 text-slate-500 text-[10px] uppercase tracking-wider">or enter
+                        manually</span>
                     <div class="flex-grow border-t border-slate-800"></div>
                 </div>
 
                 <!-- Contextual Guide Box -->
-                <div id="platform-help-box" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 space-y-1"></div>
+                <div id="platform-help-box"
+                    class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 space-y-1"></div>
 
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1" id="label-name">Account Handle / Name</label>
-                    <input type="text" id="link-name" placeholder="e.g., @mybrand" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <label class="block text-xs font-medium text-slate-400 mb-1" id="label-name">Account Handle /
+                        Name</label>
+                    <input type="text" id="link-name" placeholder="e.g., @mybrand"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1" id="label-id">Channel / Account ID</label>
-                    <input type="text" id="link-id" placeholder="Account ID" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <label class="block text-xs font-medium text-slate-400 mb-1" id="label-id">Channel / Account
+                        ID</label>
+                    <input type="text" id="link-id" placeholder="Account ID"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Access Token</label>
-                    <input type="password" id="link-token" placeholder="Access token" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <input type="password" id="link-token" placeholder="Access token"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
-                <button onclick="submitLinkAccount()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl transition">Save & Link Account</button>
+                <button onclick="submitLinkAccount()"
+                    class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl transition">Save
+                    & Link Account</button>
             </div>
             <div class="flex justify-end pt-3 border-t border-slate-800">
-                <button onclick="closeLinkModal()" class="px-4 py-2 rounded-xl text-xs bg-slate-800 text-slate-300">Close</button>
+                <button onclick="closeLinkModal()"
+                    class="px-4 py-2 rounded-xl text-xs bg-slate-800 text-slate-300">Close</button>
             </div>
         </div>
     </div>
@@ -496,7 +543,7 @@
                     }
                     if (data.images) studioImages = data.images;
                     if (data.videos) studioVideos = data.videos;
-                    
+
                     document.getElementById('img-count').innerText = studioImages.length;
                     document.getElementById('vid-count').innerText = studioVideos.length;
 
@@ -637,4 +684,5 @@
         })();
     </script>
 </body>
+
 </html>

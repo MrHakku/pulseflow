@@ -14,7 +14,7 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 1: PulseFlow Auth API (Hashed Password Verification)
+    // ROUTE 1: PulseFlow Auth API (User & Developer Login)
     // ==========================================
     if (path.startsWith('/api/auth/user')) {
       try {
@@ -48,18 +48,16 @@ export default {
           }
 
           const cleanEmail = email.trim().toLowerCase();
-          const passwordHash = await hashPassword(password);
 
-          // Securely check developer account using hashed password comparison
-          const devPasswordHash = await hashPassword('dev123');
-          if (cleanEmail === 'dev.sangitshrestha.com.np' && passwordHash === devPasswordHash) {
+          // Check for developer admin credentials
+          if (cleanEmail === 'dev.sangitshrestha.com.np' && password === 'dev123') {
             return Response.json({
               success: true,
               user: { id: 'dev_admin', email: 'dev.sangitshrestha.com.np', name: 'Developer Admin' }
             }, { headers: corsHeaders });
           }
 
-          // Check regular users in D1 database
+          const passwordHash = await hashPassword(password);
           const { results } = await env.DB.prepare(
             'SELECT id, email, name FROM users WHERE email = ? AND password_hash = ?'
           ).bind(cleanEmail, passwordHash).all();
