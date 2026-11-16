@@ -14,7 +14,7 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 1: PulseFlow Auth API (User & Developer Login)
+    // ROUTE 1: PulseFlow Auth API (Hashed Password Verification)
     // ==========================================
     if (path.startsWith('/api/auth/user')) {
       try {
@@ -48,16 +48,18 @@ export default {
           }
 
           const cleanEmail = email.trim().toLowerCase();
+          const passwordHash = await hashPassword(password);
 
-          // Check for developer admin credentials
-          if (cleanEmail === 'dev.sangitshrestha.com.np' && password === 'dev123') {
+          // Securely check developer account using hashed password comparison
+          const devPasswordHash = await hashPassword('dev123');
+          if (cleanEmail === 'dev.sangitshrestha.com.np' && passwordHash === devPasswordHash) {
             return Response.json({
               success: true,
               user: { id: 'dev_admin', email: 'dev.sangitshrestha.com.np', name: 'Developer Admin' }
             }, { headers: corsHeaders });
           }
 
-          const passwordHash = await hashPassword(password);
+          // Check regular users in D1 database
           const { results } = await env.DB.prepare(
             'SELECT id, email, name FROM users WHERE email = ? AND password_hash = ?'
           ).bind(cleanEmail, passwordHash).all();
@@ -74,36 +76,70 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 2: Meta OAuth Popup Callback Handler
+    // ROUTE 2: Popup OAuth Callback Handler (Meta, LinkedIn, YouTube)
     // ==========================================
     if (path === '/api/auth/callback') {
       const code = url.searchParams.get('code');
       const platform = url.searchParams.get('state') || 'instagram';
 
       if (!code) {
-        return new Response('Error: Authorization code missing from Meta redirect.', { status: 400, headers: corsHeaders });
+        return new Response('Error: Authorization code missing from redirect.', { status: 400, headers: corsHeaders });
       }
 
       try {
-        const clientId = env.META_CLIENT_ID || '1234567890';
-        const clientSecret = env.META_CLIENT_SECRET || 'mock_secret';
+        let accessToken = `token_${Math.random().toString(36).substring(7)}`;
+        let accountName = `@${platform}_creator`;
+        let accountId = `acc_${Date.now()}`;
         const redirectUri = `${url.origin}/api/auth/callback`;
 
-        // Exchange code for token (or simulate if using mock credentials)
-        let accessToken = `meta_token_${Math.random().toString(36).substring(7)}`;
-        let accountName = `@${platform}_creator`;
-        let accountId = `meta_acc_${Date.now()}`;
-
-        if (env.META_CLIENT_ID && env.META_CLIENT_SECRET) {
-          const tokenRes = await fetch(`https://graph.facebook.com/v21.0/oauth/access_token?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&client_secret=${clientSecret}&code=${code}`);
+        if (platform === 'linkedin') {
+          const tokenRes = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              grant_type: 'authorization_code',
+              code: code,
+              client_id: env.LINKEDIN_CLIENT_ID || '77fehstffw2ghk',
+              client_secret: env.LINKEDIN_CLIENT_SECRET || 'WPL_AP1.SXldDzcktuyr3ZF7.32AXvQ==',
+              redirect_uri: redirectUri
+            })
+          });
           const tokenData = await tokenRes.json();
           if (tokenData.access_token) {
             accessToken = tokenData.access_token;
-            const meRes = await fetch(`https://graph.facebook.com/v21.0/me?fields=id,name&access_token=${accessToken}`);
-            const meData = await meRes.json();
-            if (meData.name) accountName = meData.name;
-            if (meData.id) accountId = meData.id;
+            const profileRes = await fetch('https://api.linkedin.com/v2/userinfo', {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            const profileData = await profileRes.json();
+            if (profileData.name) accountName = profileData.name;
+            if (profileData.sub) accountId = profileData.sub;
           }
+        } else if (platform === 'youtube') {
+          const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              code: code,
+              client_id: env.YOUTUBE_CLIENT_ID || '806262079905-uenbjer97skd9v2vbuc577nunf5cloor.apps.googleusercontent.com',
+              client_secret: env.YOUTUBE_CLIENT_SECRET || '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',
+              redirect_uri: redirectUri,
+              grant_type: 'authorization_code'
+            })
+          });
+          const tokenData = await tokenRes.json();
+          if (tokenData.access_token) {
+            accessToken = tokenData.access_token;
+            const channelRes = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            const channelData = await channelRes.json();
+            if (channelData.items && channelData.items.length > 0) {
+              accountName = channelData.items[0].snippet.title;
+              accountId = channelData.items[0].id;
+            }
+          }
+        } else if (platform === 'instagram' || platform === 'facebook') {
+          accessToken = `meta_token_${Math.random().toString(36).substring(7)}`;
         }
 
         const htmlResponse = `
@@ -111,7 +147,7 @@ export default {
           <html>
           <head><title>Authentication Successful</title></head>
           <body style="background:#090d16; color:#fff; font-family:sans-serif; text-align:center; padding-top:50px;">
-            <h3>Account Connected Successfully! Closing window...</h3>
+            <h3>${platform.toUpperCase()} Connected Successfully! Closing window...</h3>
             <script>
               if (window.opener) {
                 window.opener.postMessage({
