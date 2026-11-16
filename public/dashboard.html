@@ -270,6 +270,17 @@
             document.getElementById('label-name').innerText = info.nameLabel;
             document.getElementById('label-id').innerText = info.idLabel;
             document.getElementById('platform-help-box').innerHTML = info.html;
+
+            // Auto-fill existing details if already linked to allow easy relinking / updating
+            const existing = linkedAccounts.find(a => a.platform === plat);
+            if (existing) {
+                document.getElementById('link-name').value = existing.account_name || '';
+                document.getElementById('link-id').value = existing.account_id || '';
+            } else {
+                document.getElementById('link-name').value = '';
+                document.getElementById('link-id').value = '';
+                document.getElementById('link-token').value = '';
+            }
         }
 
         function updateAuthUI() {
@@ -363,6 +374,13 @@
                 return;
             }
 
+            // Check if platform is already linked and ask to relink or update
+            const existing = linkedAccounts.find(a => a.platform === platform);
+            if (existing) {
+                const confirmRelink = confirm(`An account (${existing.account_name}) is already linked for ${platform.toUpperCase()}.\n\nDo you want to relink/update with this account ID (OK) or cancel?`);
+                if (!confirmRelink) return;
+            }
+
             try {
                 const res = await fetch('/api/accounts', {
                     method: 'POST',
@@ -372,12 +390,13 @@
                 const data = await res.json();
                 if (data.success) {
                     closeLinkModal();
-                    loadAccounts();
+                    await loadAccounts();
+                    alert(`Account for ${platform} successfully saved and linked! It will remain linked until unlinked.`);
                 } else {
                     alert('Error: ' + data.error);
                 }
             } catch (err) {
-                alert('Error: ' + err.message);
+                alert('Network error: ' + err.message);
             }
         }
 
@@ -460,7 +479,10 @@
                     if (acc) {
                         return `<div class="bg-slate-950 border border-emerald-500/30 rounded-xl p-3 flex items-center justify-between">
                             <div class="flex items-center gap-2"><i class="${p.icon} text-emerald-400"></i><span class="text-xs font-semibold">${p.label} (${acc.account_name})</span></div>
-                            <button onclick="unlinkAccount('${p.id}')" class="text-slate-500 hover:text-red-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+                            <div class="flex items-center gap-1">
+                                <button onclick="openLinkModal('${p.id}')" title="Relink Account" class="text-slate-400 hover:text-indigo-400 text-xs px-2 py-1"><i class="fa-solid fa-rotate"></i></button>
+                                <button onclick="unlinkAccount('${p.id}')" title="Disconnect Account" class="text-slate-500 hover:text-red-400 text-xs px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                            </div>
                         </div>`;
                     }
                     return `<div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
@@ -492,6 +514,7 @@
         }
 
         async function unlinkAccount(p) {
+            if (!confirm(`Are you sure you want to disconnect ${p}? It will no longer be linked to PulseFlow.`)) return;
             await fetch(`/api/accounts/${p}`, { method: 'DELETE' });
             loadAccounts();
         }
