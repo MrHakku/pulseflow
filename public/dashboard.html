@@ -135,23 +135,23 @@
         </div>
     </main>
 
-    <!-- Auth Modal (Sign Up / Login for Public Users) -->
+    <!-- Auth Modal (Sign Up / Login) -->
     <div id="auth-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 id="auth-modal-title" class="font-semibold text-base flex items-center gap-2">
-                    <i class="fa-solid fa-user-lock text-indigo-400"></i> Welcome to PulseFlow
+                    <i class="fa-solid fa-user-lock text-indigo-400"></i> Sign In to PulseFlow
                 </h3>
             </div>
-            <div class="space-y-3" id="auth-form-fields">
-                <p class="text-xs text-slate-400">Please sign in or create an account to start scheduling posts.</p>
+            <div class="space-y-3">
+                <p class="text-xs text-slate-400">Please sign in or create an account to start scheduling posts (Developers can use <code class="text-indigo-300">dev.sangitshrestha.com.np</code> / <code class="text-indigo-300">dev123</code>).</p>
                 <div id="name-field-group" class="hidden">
                     <label class="block text-xs font-medium text-slate-400 mb-1">Full Name</label>
                     <input type="text" id="auth-name" placeholder="John Doe" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Email Address</label>
-                    <input type="email" id="auth-email" placeholder="you@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Email Address or Developer ID</label>
+                    <input type="text" id="auth-email" placeholder="you@example.com or dev.sangitshrestha.com.np" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
@@ -259,7 +259,7 @@
         function toggleAuthMode() {
             isSignupMode = !isSignupMode;
             document.getElementById('name-field-group').classList.toggle('hidden', !isSignupMode);
-            document.getElementById('auth-modal-title').innerHTML = isSignupMode ? '<i class="fa-solid fa-user-plus text-indigo-400"></i> Create PulseFlow Account' : '<i class="fa-solid fa-user-lock text-indigo-400"></i> Welcome to PulseFlow';
+            document.getElementById('auth-modal-title').innerHTML = isSignupMode ? '<i class="fa-solid fa-user-plus text-indigo-400"></i> Create PulseFlow Account' : '<i class="fa-solid fa-user-lock text-indigo-400"></i> Sign In to PulseFlow';
             document.getElementById('auth-submit-btn').innerText = isSignupMode ? 'Create Account' : 'Sign In';
             document.getElementById('auth-toggle-prompt').innerText = isSignupMode ? 'Already have an account? Sign in' : "Don't have an account? Sign up";
         }
