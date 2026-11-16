@@ -1,9 +1,10 @@
 name = "pulseflow"
+main = "_worker.js"
 compatibility_date = "2026-03-01"
-pages_build_output_dir = "public"
 
-[vars]
-ENVIRONMENT = "production"
+[assets]
+directory = "./public"
+binding = "ASSETS"
 
 [[d1_databases]]
 binding = "DB"
