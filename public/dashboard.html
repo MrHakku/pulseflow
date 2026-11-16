@@ -169,7 +169,7 @@
         </div>
     </div>
 
-    <!-- Link Modal with Built-in Platform Linking Help Guides -->
+    <!-- Link Modal with Popup OAuth & Manual Options -->
     <div id="link-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -190,8 +190,22 @@
                     </select>
                 </div>
 
-                <!-- Contextual Popup Help Guide Box -->
-                <div id="platform-help-box" class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-3.5 text-xs text-slate-300 space-y-1.5"></div>
+                <!-- Popup Login Button for Meta Platforms -->
+                <div id="popup-oauth-box" class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-3.5 text-center space-y-2">
+                    <div class="text-xs font-medium text-indigo-200">Connect Automatically via Popup Window</div>
+                    <button onclick="openOAuthPopup()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow transition">
+                        <i class="fa-solid fa-window-maximize mr-1.5"></i> Connect via Official Login Popup
+                    </button>
+                </div>
+
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-800"></div>
+                    <span class="flex-shrink mx-4 text-slate-500 text-[10px] uppercase tracking-wider">or enter token manually</span>
+                    <div class="flex-grow border-t border-slate-800"></div>
+                </div>
+
+                <!-- Contextual Guide Box -->
+                <div id="platform-help-box" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 space-y-1"></div>
 
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1" id="label-name">Account Handle / Name</label>
@@ -271,7 +285,6 @@
             document.getElementById('label-id').innerText = info.idLabel;
             document.getElementById('platform-help-box').innerHTML = info.html;
 
-            // Auto-fill existing details if already linked to allow easy relinking / updating
             const existing = linkedAccounts.find(a => a.platform === plat);
             if (existing) {
                 document.getElementById('link-name').value = existing.account_name || '';
@@ -280,6 +293,55 @@
                 document.getElementById('link-name').value = '';
                 document.getElementById('link-id').value = '';
                 document.getElementById('link-token').value = '';
+            }
+        }
+
+        function openOAuthPopup() {
+            const platform = document.getElementById('link-platform').value;
+            const width = 600;
+            const height = 700;
+            const left = window.screenX + (window.outerWidth - width) / 2;
+            const top = window.screenY + (window.outerHeight - height) / 2;
+
+            let authUrl = '';
+            if (platform === 'instagram' || platform === 'facebook') {
+                const clientId = '1234567890'; // Replace with real Meta App ID
+                const redirectUri = window.location.origin + '/api/auth/callback';
+                const scope = 'instagram_basic,instagram_content_publish,pages_show_list';
+                authUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code&state=${platform}`;
+            } else {
+                alert('Popup OAuth login is configured for Meta/Instagram/Facebook. Please use manual token pasting for YouTube, LinkedIn, and X.');
+                return;
+            }
+
+            window.open(authUrl, 'ConnectOAuth', `width=${width},height=${height},top=${top},left=${left}`);
+        }
+
+        window.addEventListener('message', async (event) => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data && event.data.type === 'META_OAUTH_SUCCESS') {
+                const { platform, accountName, accountId, accessToken } = event.data;
+                await saveAccountToD1(platform, accountName, accountId, accessToken);
+            }
+        });
+
+        async function saveAccountToD1(platform, account_name, account_id, access_token) {
+            try {
+                const res = await fetch('/api/accounts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ platform, account_name, account_id, access_token })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeLinkModal();
+                    await loadAccounts();
+                    alert(`Successfully linked ${platform} account: ${account_name}`);
+                } else {
+                    alert('Error saving account: ' + data.error);
+                }
+            } catch (err) {
+                alert('Network error: ' + err.message);
             }
         }
 
@@ -374,30 +436,13 @@
                 return;
             }
 
-            // Check if platform is already linked and ask to relink or update
             const existing = linkedAccounts.find(a => a.platform === platform);
             if (existing) {
-                const confirmRelink = confirm(`An account (${existing.account_name}) is already linked for ${platform.toUpperCase()}.\n\nDo you want to relink/update with this account ID (OK) or cancel?`);
+                const confirmRelink = confirm(`An account (${existing.account_name}) is already linked for ${platform.toUpperCase()}.\n\nDo you want to update/relink with this ID?`);
                 if (!confirmRelink) return;
             }
 
-            try {
-                const res = await fetch('/api/accounts', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ platform, account_name, account_id, access_token })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    closeLinkModal();
-                    await loadAccounts();
-                    alert(`Account for ${platform} successfully saved and linked! It will remain linked until unlinked.`);
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            } catch (err) {
-                alert('Network error: ' + err.message);
-            }
+            await saveAccountToD1(platform, account_name, account_id, access_token);
         }
 
         function switchMediaTab(tab) {
@@ -514,7 +559,7 @@
         }
 
         async function unlinkAccount(p) {
-            if (!confirm(`Are you sure you want to disconnect ${p}? It will no longer be linked to PulseFlow.`)) return;
+            if (!confirm(`Are you sure you want to disconnect ${p}? It will remain unlinked until you reconnect it.`)) return;
             await fetch(`/api/accounts/${p}`, { method: 'DELETE' });
             loadAccounts();
         }
