@@ -8,4 +8,4 @@ ENVIRONMENT = "production"
 [[d1_databases]]
 binding = "DB"
 database_name = "pulseflow_db"
-database_id = "1037c7bd-9e23-47de-bfcd-3e797861bd93"
+database_id = "56fbe5ac-de37-4b6b-aae6-32fc79ae79e2"
