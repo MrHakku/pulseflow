@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,15 +7,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
 
     <!-- Navbar -->
-    <header
-        class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between max-w-7xl w-full mx-auto">
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between max-w-7xl w-full mx-auto">
         <div class="flex items-center space-x-3">
-            <div
-                class="w-10 h-10 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <div class="w-10 h-10 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <i class="fa-solid fa-bolt text-white text-lg"></i>
             </div>
             <div>
@@ -25,36 +21,35 @@
             </div>
         </div>
         <div class="flex items-center space-x-3">
-            <a href="/dashboard.html"
-                class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition flex items-center gap-2">
-                <i class="fa-solid fa-gauge-high"></i> Open Dashboard & Dev Mode
-            </a>
+            <button onclick="openAuthModal('login')" class="px-3 py-2 text-xs font-semibold text-slate-300 hover:text-white transition">
+                Sign In
+            </button>
+            <button onclick="openAuthModal('signup')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition">
+                Create Account
+            </button>
         </div>
     </header>
 
     <!-- Hero Section -->
     <main class="flex-1 max-w-6xl w-full mx-auto px-6 py-16 flex flex-col items-center text-center space-y-8">
-        <div
-            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse mr-2"></span> Powered by Cloudflare Workers AI
-            & D1
+        <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse mr-2"></span> Powered by Cloudflare Workers AI & D1
         </div>
 
         <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tight max-w-3xl leading-tight">
-            Automate & Scale Your Social Media with <span
-                class="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">AI
-                Intelligence</span>
+            Automate & Scale Your Social Media with <span class="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">AI Intelligence</span>
         </h2>
 
         <p class="text-base sm:text-lg text-slate-400 max-w-2xl leading-relaxed">
-            Generate high-converting captions, create stunning AI promo visuals in seconds, select stock vertical
-            videos, and auto-publish across Instagram, YouTube, LinkedIn, and X.
+            Generate high-converting captions, create stunning AI promo visuals in seconds, select stock vertical videos, and auto-publish across Instagram, YouTube, LinkedIn, and X.
         </p>
 
         <div class="flex flex-wrap justify-center gap-4 pt-4">
-            <a href="/dashboard.html"
-                class="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm rounded-xl shadow-xl shadow-indigo-600/30 transition flex items-center gap-2">
-                <i class="fa-solid fa-rocket"></i> Launch App & Test Sandbox
+            <a href="/dashboard.html" class="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm rounded-xl shadow-xl shadow-indigo-600/30 transition flex items-center gap-2">
+                <i class="fa-solid fa-rocket"></i> Launch App
+            </a>
+            <a href="/dashboard.html" class="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 font-semibold text-sm rounded-xl transition flex items-center gap-2">
+                <i class="fa-solid fa-gauge-high"></i> Open Dashboard
             </a>
         </div>
 
@@ -66,8 +61,7 @@
                 </div>
                 <h3 class="font-semibold text-base">Workers AI Studio</h3>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                    Instantly generate engaging captions with Llama 3.1 and 4 distinct promotional image variations
-                    using Stable Diffusion XL Lightning.
+                    Instantly generate engaging captions with Llama 3.1 and 4 distinct promotional image variations using Stable Diffusion XL Lightning.
                 </p>
             </div>
 
@@ -77,8 +71,7 @@
                 </div>
                 <h3 class="font-semibold text-base">Video & Reel Picker</h3>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                    Select ready-to-publish MP4 vertical clips for Instagram Reels and YouTube Shorts with instant
-                    inline hover previews.
+                    Select ready-to-publish MP4 vertical clips for Instagram Reels and YouTube Shorts with instant inline hover previews.
                 </p>
             </div>
 
@@ -86,19 +79,106 @@
                 <div class="w-10 h-10 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center">
                     <i class="fa-solid fa-shield-halved text-base"></i>
                 </div>
-                <h3 class="font-semibold text-base">Developer Sandbox Mode</h3>
+                <h3 class="font-semibold text-base">Multi-Platform Publishing</h3>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                    Test the entire publishing queue and account linking instantly in Sandbox Mode without needing
-                    complex live developer keys.
+                    Schedule and automate your posts seamlessly across Instagram, YouTube, LinkedIn, X, and Facebook.
                 </p>
             </div>
         </div>
     </main>
 
+    <!-- Auth Modal (Sign In / Create Account) -->
+    <div id="auth-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 id="auth-modal-title" class="font-semibold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-user-lock text-indigo-400"></i> Sign In to PulseFlow
+                </h3>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div id="name-field-group" class="hidden">
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Full Name</label>
+                    <input type="text" id="auth-name" placeholder="John Doe" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Email Address or Developer ID</label>
+                    <input type="text" id="auth-email" placeholder="you@example.com or dev.sangitshrestha.com.np" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                </div>
+                <button onclick="submitAuth()" id="auth-submit-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow transition mt-2">
+                    Sign In
+                </button>
+                <div class="text-center pt-2">
+                    <button onclick="toggleAuthMode()" id="auth-toggle-prompt" class="text-xs text-indigo-400 hover:underline">
+                        Don't have an account? Sign up
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
         &copy; 2026 PulseFlow. Built on Cloudflare Pages, D1, and Workers AI.
     </footer>
-</body>
 
+    <script>
+        let isSignupMode = false;
+
+        function openAuthModal(mode) {
+            isSignupMode = (mode === 'signup');
+            document.getElementById('name-field-group').classList.toggle('hidden', !isSignupMode);
+            document.getElementById('auth-modal-title').innerHTML = isSignupMode ? '<i class="fa-solid fa-user-plus text-indigo-400"></i> Create PulseFlow Account' : '<i class="fa-solid fa-user-lock text-indigo-400"></i> Sign In to PulseFlow';
+            document.getElementById('auth-submit-btn').innerText = isSignupMode ? 'Create Account' : 'Sign In';
+            document.getElementById('auth-toggle-prompt').innerText = isSignupMode ? 'Already have an account? Sign in' : "Don't have an account? Sign up";
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function toggleAuthMode() {
+            isSignupMode = !isSignupMode;
+            document.getElementById('name-field-group').classList.toggle('hidden', !isSignupMode);
+            document.getElementById('auth-modal-title').innerHTML = isSignupMode ? '<i class="fa-solid fa-user-plus text-indigo-400"></i> Create PulseFlow Account' : '<i class="fa-solid fa-user-lock text-indigo-400"></i> Sign In to PulseFlow';
+            document.getElementById('auth-submit-btn').innerText = isSignupMode ? 'Create Account' : 'Sign In';
+            document.getElementById('auth-toggle-prompt').innerText = isSignupMode ? 'Already have an account? Sign in' : "Don't have an account? Sign up";
+        }
+
+        async function submitAuth() {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            const name = document.getElementById('auth-name').value.trim();
+
+            if (!email || !password || (isSignupMode && !name)) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            const endpoint = isSignupMode ? '/api/auth/user/register' : '/api/auth/user/login';
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, name })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('pulseflow_user', JSON.stringify(data.user));
+                    alert(isSignupMode ? 'Account created successfully!' : 'Signed in successfully!');
+                    window.location.href = '/dashboard.html';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Network error: ' + err.message);
+            }
+        }
+    </script>
+</body>
 </html>
