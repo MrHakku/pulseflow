@@ -14,7 +14,7 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 1: PulseFlow Public Auth API (Signup / Login)
+    // ROUTE 1: PulseFlow Auth API (User & Developer Login)
     // ==========================================
     if (path.startsWith('/api/auth/user')) {
       try {
@@ -47,10 +47,20 @@ export default {
             return Response.json({ error: 'Email and password are required.' }, { status: 400, headers: corsHeaders });
           }
 
+          const cleanEmail = email.trim().toLowerCase();
+
+          // Check for developer account credentials
+          if (cleanEmail === 'dev.sangitshrestha.com.np' && password === 'dev123') {
+            return Response.json({
+              success: true,
+              user: { id: 'dev_admin', email: 'dev.sangitshrestha.com.np', name: 'Developer Admin' }
+            }, { headers: corsHeaders });
+          }
+
           const passwordHash = await hashPassword(password);
           const { results } = await env.DB.prepare(
             'SELECT id, email, name FROM users WHERE email = ? AND password_hash = ?'
-          ).bind(email.trim().toLowerCase(), passwordHash).all();
+          ).bind(cleanEmail, passwordHash).all();
 
           if (!results || results.length === 0) {
             return Response.json({ error: 'Invalid email or password.' }, { status: 401, headers: corsHeaders });
@@ -252,21 +262,13 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 5: Developer Sandbox Simulation Endpoint
-    // ==========================================
-    if (path === '/api/sandbox/simulate' && request.method === 'POST') {
-      const summary = await processScheduledPosts(env, true);
-      return Response.json({ success: true, ...summary }, { headers: corsHeaders });
-    }
-
-    // ==========================================
-    // ROUTE 6: Serve Static Frontend (public/)
+    // ROUTE 5: Serve Static Frontend (public/)
     // ==========================================
     return env.ASSETS.fetch(request);
   },
 
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(processScheduledPosts(env, false));
+    ctx.waitUntil(processScheduledPosts(env));
   }
 };
 
@@ -277,24 +279,16 @@ async function hashPassword(password) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-async function processScheduledPosts(env, forceSimulate = false) {
+async function processScheduledPosts(env) {
   const nowIso = new Date().toISOString();
-  let query = "SELECT * FROM posts WHERE status = 'queue'";
-  let params = [];
+  const { results: duePosts } = await env.DB.prepare(
+    "SELECT * FROM posts WHERE status = 'queue' AND scheduled_date <= ?"
+  ).bind(nowIso).all();
 
-  if (!forceSimulate) {
-    query += " AND scheduled_date <= ?";
-    params.push(nowIso);
-  }
-
-  const { results: duePosts } = await env.DB.prepare(query).bind(...params).all();
   let publishedCount = 0;
-  const errors = [];
-
   for (const post of duePosts || []) {
     await env.DB.prepare("UPDATE posts SET status = 'sent' WHERE id = ?").bind(post.id).run();
     publishedCount++;
   }
-
-  return { checked: (duePosts || []).length, published: publishedCount, errors };
+  return { checked: (duePosts || []).length, published: publishedCount };
 }
