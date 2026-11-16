@@ -6,13 +6,13 @@ compatibility_date = "2026-03-01"
 directory = "./public"
 binding = "ASSETS"
 
-[[d1_databases]]
-binding = "DB"
-database_name = "pulseflow_db"
-database_id = "56fbe5ac-de37-4b6b-aae6-32fc79ae79e2"
-
 [ai]
 binding = "AI"
 
 [triggers]
-crons = ["*/5 * * * *"] # Checks every 5 minutes for due posts
+crons = ["*/5 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pulseflow_db"
+database_id = "56fbe5ac-de37-4b6b-aae6-32fc79ae79e2"
