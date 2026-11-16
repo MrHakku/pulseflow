@@ -74,7 +74,7 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 2: Linked Social Accounts API (D1)
+    // ROUTE 2: Persistent Linked Social Accounts API (D1)
     // ==========================================
     if (path.startsWith('/api/accounts')) {
       try {
