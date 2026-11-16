@@ -14,7 +14,57 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 1: Linked Accounts API (D1)
+    // ROUTE 1: PulseFlow Public Auth API (Signup / Login)
+    // ==========================================
+    if (path.startsWith('/api/auth/user')) {
+      try {
+        if (path === '/api/auth/user/register' && request.method === 'POST') {
+          const { email, password, name } = await request.json();
+          if (!email || !password || !name) {
+            return Response.json({ error: 'Name, email, and password are required.' }, { status: 400, headers: corsHeaders });
+          }
+
+          const passwordHash = await hashPassword(password);
+          const userId = 'user_' + Date.now();
+
+          try {
+            await env.DB.prepare(
+              'INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)'
+            ).bind(userId, email.trim().toLowerCase(), passwordHash, name.trim()).run();
+          } catch (e) {
+            if (e.message.includes('UNIQUE')) {
+              return Response.json({ error: 'An account with this email already exists.' }, { status: 400, headers: corsHeaders });
+            }
+            throw e;
+          }
+
+          return Response.json({ success: true, user: { id: userId, email: email.trim().toLowerCase(), name: name.trim() } }, { headers: corsHeaders });
+        }
+
+        if (path === '/api/auth/user/login' && request.method === 'POST') {
+          const { email, password } = await request.json();
+          if (!email || !password) {
+            return Response.json({ error: 'Email and password are required.' }, { status: 400, headers: corsHeaders });
+          }
+
+          const passwordHash = await hashPassword(password);
+          const { results } = await env.DB.prepare(
+            'SELECT id, email, name FROM users WHERE email = ? AND password_hash = ?'
+          ).bind(email.trim().toLowerCase(), passwordHash).all();
+
+          if (!results || results.length === 0) {
+            return Response.json({ error: 'Invalid email or password.' }, { status: 401, headers: corsHeaders });
+          }
+
+          return Response.json({ success: true, user: results[0] }, { headers: corsHeaders });
+        }
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 500, headers: corsHeaders });
+      }
+    }
+
+    // ==========================================
+    // ROUTE 2: Linked Social Accounts API (D1)
     // ==========================================
     if (path.startsWith('/api/accounts')) {
       try {
@@ -27,12 +77,8 @@ export default {
 
         if ((path === '/api/accounts' || path === '/api/accounts/') && request.method === 'POST') {
           const { platform, account_name, account_id, access_token } = await request.json();
-
           if (!platform || !account_name || !account_id || !access_token) {
-            return Response.json(
-              { error: 'Platform, Account Name, ID, and Access Token are required.' },
-              { status: 400, headers: corsHeaders }
-            );
+            return Response.json({ error: 'Platform, Account Name, ID, and Access Token are required.' }, { status: 400, headers: corsHeaders });
           }
 
           await env.DB.prepare(
@@ -43,9 +89,7 @@ export default {
                account_id = excluded.account_id,
                access_token = excluded.access_token,
                connected_at = CURRENT_TIMESTAMP`
-          )
-            .bind(platform.toLowerCase(), account_name.trim(), account_id.trim(), access_token.trim())
-            .run();
+          ).bind(platform.toLowerCase(), account_name.trim(), account_id.trim(), access_token.trim()).run();
 
           return Response.json({ success: true }, { headers: corsHeaders });
         }
@@ -61,7 +105,7 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 2: AI Caption & Multi-Image/Video Studio
+    // ROUTE 3: AI Caption & Multi-Image/Video Studio
     // ==========================================
     if (path === '/api/ai' && request.method === 'POST') {
       try {
@@ -156,7 +200,7 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 3: Posts CRUD API
+    // ROUTE 4: Posts CRUD API
     // ==========================================
     if (path.startsWith('/api/posts')) {
       try {
@@ -184,17 +228,15 @@ export default {
           const id = 'post_' + Date.now();
           await env.DB.prepare(
             'INSERT INTO posts (id, brand_id, content, platforms, status, scheduled_date, media_url) VALUES (?, ?, ?, ?, ?, ?, ?)'
-          )
-            .bind(
-              id,
-              body.brand_id || 1,
-              body.content,
-              JSON.stringify(selectedPlatforms),
-              body.status || 'queue',
-              body.scheduled_date || new Date().toISOString(),
-              body.media_url || ''
-            )
-            .run();
+          ).bind(
+            id,
+            body.brand_id || 1,
+            body.content,
+            JSON.stringify(selectedPlatforms),
+            body.status || 'queue',
+            body.scheduled_date || new Date().toISOString(),
+            body.media_url || ''
+          ).run();
 
           return Response.json({ success: true, id }, { headers: corsHeaders });
         }
@@ -210,15 +252,15 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 4: Developer Sandbox Simulation Endpoint
+    // ROUTE 5: Developer Sandbox Simulation Endpoint
     // ==========================================
     if (path === '/api/sandbox/simulate' && request.method === 'POST') {
-      const summary = await processScheduledPosts(env, true); // true = force simulate for developer testing
+      const summary = await processScheduledPosts(env, true);
       return Response.json({ success: true, ...summary }, { headers: corsHeaders });
     }
 
     // ==========================================
-    // ROUTE 5: Serve Static Frontend (public/)
+    // ROUTE 6: Serve Static Frontend (public/)
     // ==========================================
     return env.ASSETS.fetch(request);
   },
@@ -227,6 +269,13 @@ export default {
     ctx.waitUntil(processScheduledPosts(env, false));
   }
 };
+
+async function hashPassword(password) {
+  const msgUint8 = new TextEncoder().encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 async function processScheduledPosts(env, forceSimulate = false) {
   const nowIso = new Date().toISOString();
@@ -239,15 +288,11 @@ async function processScheduledPosts(env, forceSimulate = false) {
   }
 
   const { results: duePosts } = await env.DB.prepare(query).bind(...params).all();
-
   let publishedCount = 0;
   const errors = [];
 
   for (const post of duePosts || []) {
-    // In developer simulation mode, we instantly mark queued posts as 'sent' successfully
-    await env.DB.prepare("UPDATE posts SET status = 'sent' WHERE id = ?")
-      .bind(post.id)
-      .run();
+    await env.DB.prepare("UPDATE posts SET status = 'sent' WHERE id = ?").bind(post.id).run();
     publishedCount++;
   }
 
