@@ -49,7 +49,7 @@ export default {
 
           const cleanEmail = email.trim().toLowerCase();
 
-          // Check for developer account credentials
+          // Check for developer admin credentials
           if (cleanEmail === 'dev.sangitshrestha.com.np' && password === 'dev123') {
             return Response.json({
               success: true,
@@ -74,7 +74,69 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 2: Persistent Linked Social Accounts API (D1)
+    // ROUTE 2: Meta OAuth Popup Callback Handler
+    // ==========================================
+    if (path === '/api/auth/callback') {
+      const code = url.searchParams.get('code');
+      const platform = url.searchParams.get('state') || 'instagram';
+
+      if (!code) {
+        return new Response('Error: Authorization code missing from Meta redirect.', { status: 400, headers: corsHeaders });
+      }
+
+      try {
+        const clientId = env.META_CLIENT_ID || '1234567890';
+        const clientSecret = env.META_CLIENT_SECRET || 'mock_secret';
+        const redirectUri = `${url.origin}/api/auth/callback`;
+
+        // Exchange code for token (or simulate if using mock credentials)
+        let accessToken = `meta_token_${Math.random().toString(36).substring(7)}`;
+        let accountName = `@${platform}_creator`;
+        let accountId = `meta_acc_${Date.now()}`;
+
+        if (env.META_CLIENT_ID && env.META_CLIENT_SECRET) {
+          const tokenRes = await fetch(`https://graph.facebook.com/v21.0/oauth/access_token?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&client_secret=${clientSecret}&code=${code}`);
+          const tokenData = await tokenRes.json();
+          if (tokenData.access_token) {
+            accessToken = tokenData.access_token;
+            const meRes = await fetch(`https://graph.facebook.com/v21.0/me?fields=id,name&access_token=${accessToken}`);
+            const meData = await meRes.json();
+            if (meData.name) accountName = meData.name;
+            if (meData.id) accountId = meData.id;
+          }
+        }
+
+        const htmlResponse = `
+          <!DOCTYPE html>
+          <html>
+          <head><title>Authentication Successful</title></head>
+          <body style="background:#090d16; color:#fff; font-family:sans-serif; text-align:center; padding-top:50px;">
+            <h3>Account Connected Successfully! Closing window...</h3>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({
+                  type: 'META_OAUTH_SUCCESS',
+                  platform: '${platform}',
+                  accountName: '${accountName}',
+                  accountId: '${accountId}',
+                  accessToken: '${accessToken}'
+                }, window.location.origin);
+                window.close();
+              } else {
+                window.close();
+              }
+            </script>
+          </body>
+          </html>
+        `;
+        return new Response(htmlResponse, { headers: { 'Content-Type': 'text/html' } });
+      } catch (err) {
+        return new Response(`OAuth Callback Exception: ${err.message}`, { status: 500, headers: corsHeaders });
+      }
+    }
+
+    // ==========================================
+    // ROUTE 3: Persistent Linked Accounts API (D1)
     // ==========================================
     if (path.startsWith('/api/accounts')) {
       try {
@@ -115,7 +177,7 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 3: AI Caption & Multi-Image/Video Studio
+    // ROUTE 4: Workers AI Studio (Llama 3.1 & SDXL)
     // ==========================================
     if (path === '/api/ai' && request.method === 'POST') {
       try {
@@ -210,7 +272,7 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 4: Posts CRUD API
+    // ROUTE 5: Posts CRUD API
     // ==========================================
     if (path.startsWith('/api/posts')) {
       try {
@@ -262,7 +324,7 @@ export default {
     }
 
     // ==========================================
-    // ROUTE 5: Serve Static Frontend (public/)
+    // ROUTE 6: Serve Static Frontend (public/)
     // ==========================================
     return env.ASSETS.fetch(request);
   },
