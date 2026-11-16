@@ -144,14 +144,14 @@
                 </h3>
             </div>
             <div class="space-y-3">
-                <p class="text-xs text-slate-400">Please sign in or create an account to start scheduling posts (Developers can use <code class="text-indigo-300">dev.sangitshrestha.com.np</code> / <code class="text-indigo-300">dev123</code>).</p>
+                <p class="text-xs text-slate-400">Please sign in or create an account to start scheduling posts.</p>
                 <div id="name-field-group" class="hidden">
                     <label class="block text-xs font-medium text-slate-400 mb-1">Full Name</label>
                     <input type="text" id="auth-name" placeholder="John Doe" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Email Address or Developer ID</label>
-                    <input type="text" id="auth-email" placeholder="you@example.com or dev.sangitshrestha.com.np" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Email Address</label>
+                    <input type="text" id="auth-email" placeholder="you@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
@@ -169,19 +169,19 @@
         </div>
     </div>
 
-    <!-- Link Modal -->
+    <!-- Link Modal with Built-in Platform Linking Help Guides -->
     <div id="link-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="font-semibold text-base flex items-center gap-2">
-                    <i class="fa-solid fa-link text-indigo-400"></i> Link Account
+                    <i class="fa-solid fa-link text-indigo-400"></i> Link Social Account
                 </h3>
                 <button onclick="closeLinkModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Platform</label>
-                    <select id="link-platform" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <select id="link-platform" onchange="updateLinkHelp()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                         <option value="instagram">Instagram</option>
                         <option value="youtube">YouTube</option>
                         <option value="linkedin">LinkedIn</option>
@@ -189,19 +189,23 @@
                         <option value="facebook">Facebook</option>
                     </select>
                 </div>
+
+                <!-- Contextual Popup Help Guide Box -->
+                <div id="platform-help-box" class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-3.5 text-xs text-slate-300 space-y-1.5"></div>
+
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Account Handle / Name</label>
+                    <label class="block text-xs font-medium text-slate-400 mb-1" id="label-name">Account Handle / Name</label>
                     <input type="text" id="link-name" placeholder="e.g., @mybrand" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Channel / Account ID</label>
+                    <label class="block text-xs font-medium text-slate-400 mb-1" id="label-id">Channel / Account ID</label>
                     <input type="text" id="link-id" placeholder="Account ID" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">Access Token</label>
                     <input type="password" id="link-token" placeholder="Access token" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
-                <button onclick="submitLinkAccount()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl transition">Save & Link</button>
+                <button onclick="submitLinkAccount()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl transition">Save & Link Account</button>
             </div>
             <div class="flex justify-end pt-3 border-t border-slate-800">
                 <button onclick="closeLinkModal()" class="px-4 py-2 rounded-xl text-xs bg-slate-800 text-slate-300">Close</button>
@@ -218,6 +222,34 @@
             { id: 'facebook', label: 'Facebook', icon: 'fa-brands fa-facebook' }
         ];
 
+        const PLATFORM_HELP = {
+            instagram: {
+                nameLabel: 'Instagram Handle (e.g., @yourbrand)',
+                idLabel: 'Instagram Business Account ID (17-digit number)',
+                html: `<strong>Instagram Link Guide:</strong> Switch your IG account to Professional/Business, link a Facebook Page, use <em>Meta Graph API Explorer</em> to generate a token with <code>instagram_content_publish</code>, and paste your 17-digit IG Business ID.`
+            },
+            youtube: {
+                nameLabel: 'YouTube Channel Name',
+                idLabel: 'YouTube Channel ID (starts with UC...)',
+                html: `<strong>YouTube Link Guide:</strong> Enable <em>YouTube Data API v3</em> in Google Cloud Console, authorize scope <code>https://www.googleapis.com/auth/youtube.upload</code> via OAuth 2.0 Playground, and paste your Channel ID and Access Token.`
+            },
+            linkedin: {
+                nameLabel: 'LinkedIn Profile or Page Name',
+                idLabel: 'LinkedIn Member ID or URN',
+                html: `<strong>LinkedIn Link Guide:</strong> Create an app on LinkedIn Developers with <code>w_member_social</code> product enabled and paste your Member ID and OAuth Access Token.`
+            },
+            x: {
+                nameLabel: 'X Handle (e.g., @yourhandle)',
+                idLabel: 'X Numeric User ID',
+                html: `<strong>X (Twitter) Link Guide:</strong> Create a project in X Developer Portal with Read/Write permissions and paste your User ID and Bearer Token.`
+            },
+            facebook: {
+                nameLabel: 'Facebook Page Name',
+                idLabel: 'Facebook Page ID',
+                html: `<strong>Facebook Page Link Guide:</strong> Generate a Page Access Token via Meta Graph API Explorer with <code>pages_manage_posts</code> permission and paste your Page ID.`
+            }
+        };
+
         let linkedAccounts = [];
         let selectedPlatforms = [];
         let studioImages = [];
@@ -231,6 +263,14 @@
         contentBox.addEventListener('input', (e) => {
             document.getElementById('char-count').innerText = `${e.target.value.length} characters`;
         });
+
+        function updateLinkHelp() {
+            const plat = document.getElementById('link-platform').value;
+            const info = PLATFORM_HELP[plat] || PLATFORM_HELP.instagram;
+            document.getElementById('label-name').innerText = info.nameLabel;
+            document.getElementById('label-id').innerText = info.idLabel;
+            document.getElementById('platform-help-box').innerHTML = info.html;
+        }
 
         function updateAuthUI() {
             const badge = document.getElementById('nav-user-name');
@@ -304,6 +344,7 @@
 
         function openLinkModal(p = null) {
             if (p) document.getElementById('link-platform').value = p;
+            updateLinkHelp();
             document.getElementById('link-modal').classList.remove('hidden');
         }
 
