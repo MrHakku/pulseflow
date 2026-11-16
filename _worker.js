@@ -3,388 +3,71 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    };
-
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
-    }
-
-    // ==========================================
-    // ROUTE 1: PulseFlow Auth API (User & Developer Login)
-    // ==========================================
-    if (path.startsWith('/api/auth/user')) {
-      try {
-        if (path === '/api/auth/user/register' && request.method === 'POST') {
-          const { email, password, name } = await request.json();
-          if (!email || !password || !name) {
-            return Response.json({ error: 'Name, email, and password are required.' }, { status: 400, headers: corsHeaders });
-          }
-
-          const passwordHash = await hashPassword(password);
-          const userId = 'user_' + Date.now();
-
-          try {
-            await env.DB.prepare(
-              'INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)'
-            ).bind(userId, email.trim().toLowerCase(), passwordHash, name.trim()).run();
-          } catch (e) {
-            if (e.message.includes('UNIQUE')) {
-              return Response.json({ error: 'An account with this email already exists.' }, { status: 400, headers: corsHeaders });
-            }
-            throw e;
-          }
-
-          return Response.json({ success: true, user: { id: userId, email: email.trim().toLowerCase(), name: name.trim() } }, { headers: corsHeaders });
+    // 1. API: Posts Management
+    if (path === '/api/posts') {
+      if (request.method === 'GET') {
+        try {
+          const { results } = await env.DB.prepare("SELECT * FROM posts ORDER BY created_at DESC").all();
+          return Response.json(results);
+        } catch (err) {
+          return Response.json({ error: err.message }, { status: 500 });
         }
-
-        if (path === '/api/auth/user/login' && request.method === 'POST') {
-          const { email, password } = await request.json();
-          if (!email || !password) {
-            return Response.json({ error: 'Email and password are required.' }, { status: 400, headers: corsHeaders });
-          }
-
-          const cleanEmail = email.trim().toLowerCase();
-
-          // Check for developer admin credentials
-          if (cleanEmail === 'dev.sangitshrestha.com.np' && password === 'dev123') {
-            return Response.json({
-              success: true,
-              user: { id: 'dev_admin', email: 'dev.sangitshrestha.com.np', name: 'Developer Admin' }
-            }, { headers: corsHeaders });
-          }
-
-          const passwordHash = await hashPassword(password);
-          const { results } = await env.DB.prepare(
-            'SELECT id, email, name FROM users WHERE email = ? AND password_hash = ?'
-          ).bind(cleanEmail, passwordHash).all();
-
-          if (!results || results.length === 0) {
-            return Response.json({ error: 'Invalid email or password.' }, { status: 401, headers: corsHeaders });
-          }
-
-          return Response.json({ success: true, user: results[0] }, { headers: corsHeaders });
-        }
-      } catch (err) {
-        return Response.json({ error: err.message }, { status: 500, headers: corsHeaders });
       }
-    }
-
-    // ==========================================
-    // ROUTE 2: Popup OAuth Callback Handler (Meta, LinkedIn, YouTube)
-    // ==========================================
-    if (path === '/api/auth/callback') {
-      const code = url.searchParams.get('code');
-      const platform = url.searchParams.get('state') || 'instagram';
-
-      if (!code) {
-        return new Response('Error: Authorization code missing from redirect.', { status: 400, headers: corsHeaders });
-      }
-
-      try {
-        let accessToken = `token_${Math.random().toString(36).substring(7)}`;
-        let accountName = `@${platform}_creator`;
-        let accountId = `acc_${Date.now()}`;
-        const redirectUri = `${url.origin}/api/auth/callback`;
-
-        if (platform === 'linkedin') {
-          const tokenRes = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-              grant_type: 'authorization_code',
-              code: code,
-              client_id: env.LINKEDIN_CLIENT_ID || '77fehstffw2ghk',
-              client_secret: env.LINKEDIN_CLIENT_SECRET || 'WPL_AP1.SXldDzcktuyr3ZF7.32AXvQ==',
-              redirect_uri: redirectUri
-            })
-          });
-          const tokenData = await tokenRes.json();
-          if (tokenData.access_token) {
-            accessToken = tokenData.access_token;
-            const profileRes = await fetch('https://api.linkedin.com/v2/userinfo', {
-              headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            const profileData = await profileRes.json();
-            if (profileData.name) accountName = profileData.name;
-            if (profileData.sub) accountId = profileData.sub;
-          }
-        } else if (platform === 'youtube') {
-          const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-              code: code,
-              client_id: env.YOUTUBE_CLIENT_ID || '806262079905-uenbjer97skd9v2vbuc577nunf5cloor.apps.googleusercontent.com',
-              client_secret: env.YOUTUBE_CLIENT_SECRET || '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',
-              redirect_uri: redirectUri,
-              grant_type: 'authorization_code'
-            })
-          });
-          const tokenData = await tokenRes.json();
-          if (tokenData.access_token) {
-            accessToken = tokenData.access_token;
-            const channelRes = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
-              headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            const channelData = await channelRes.json();
-            if (channelData.items && channelData.items.length > 0) {
-              accountName = channelData.items[0].snippet.title;
-              accountId = channelData.items[0].id;
-            }
-          }
-        } else if (platform === 'instagram' || platform === 'facebook') {
-          accessToken = `meta_token_${Math.random().toString(36).substring(7)}`;
-        }
-
-        const htmlResponse = `
-          <!DOCTYPE html>
-          <html>
-          <head><title>Authentication Successful</title></head>
-          <body style="background:#090d16; color:#fff; font-family:sans-serif; text-align:center; padding-top:50px;">
-            <h3>${platform.toUpperCase()} Connected Successfully! Closing window...</h3>
-            <script>
-              if (window.opener) {
-                window.opener.postMessage({
-                  type: 'META_OAUTH_SUCCESS',
-                  platform: '${platform}',
-                  accountName: '${accountName}',
-                  accountId: '${accountId}',
-                  accessToken: '${accessToken}'
-                }, window.location.origin);
-                window.close();
-              } else {
-                window.close();
-              }
-            </script>
-          </body>
-          </html>
-        `;
-        return new Response(htmlResponse, { headers: { 'Content-Type': 'text/html' } });
-      } catch (err) {
-        return new Response(`OAuth Callback Exception: ${err.message}`, { status: 500, headers: corsHeaders });
-      }
-    }
-
-    // ==========================================
-    // ROUTE 3: Persistent Linked Accounts API (D1)
-    // ==========================================
-    if (path.startsWith('/api/accounts')) {
-      try {
-        if ((path === '/api/accounts' || path === '/api/accounts/') && request.method === 'GET') {
-          const { results } = await env.DB.prepare(
-            'SELECT platform, account_name, account_id, connected_at FROM accounts ORDER BY connected_at DESC'
-          ).all();
-          return Response.json(results || [], { headers: corsHeaders });
-        }
-
-        if ((path === '/api/accounts' || path === '/api/accounts/') && request.method === 'POST') {
-          const { platform, account_name, account_id, access_token } = await request.json();
-          if (!platform || !account_name || !account_id || !access_token) {
-            return Response.json({ error: 'Platform, Account Name, ID, and Access Token are required.' }, { status: 400, headers: corsHeaders });
-          }
-
-          await env.DB.prepare(
-            `INSERT INTO accounts (platform, account_name, account_id, access_token, connected_at)
-             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-             ON CONFLICT(platform) DO UPDATE SET
-               account_name = excluded.account_name,
-               account_id = excluded.account_id,
-               access_token = excluded.access_token,
-               connected_at = CURRENT_TIMESTAMP`
-          ).bind(platform.toLowerCase(), account_name.trim(), account_id.trim(), access_token.trim()).run();
-
-          return Response.json({ success: true }, { headers: corsHeaders });
-        }
-
-        if (request.method === 'DELETE') {
-          const platform = path.split('/').pop().toLowerCase();
-          await env.DB.prepare('DELETE FROM accounts WHERE platform = ?').bind(platform).run();
-          return Response.json({ success: true }, { headers: corsHeaders });
-        }
-      } catch (err) {
-        return Response.json({ error: err.message }, { status: 500, headers: corsHeaders });
-      }
-    }
-
-    // ==========================================
-    // ROUTE 4: Workers AI Studio (Llama 3.1 & SDXL)
-    // ==========================================
-    if (path === '/api/ai' && request.method === 'POST') {
-      try {
-        const { prompt, mode = 'all', platforms = ['instagram'] } = await request.json();
-        if (!prompt || !prompt.trim()) {
-          return Response.json({ error: 'Please enter a topic or prompt first.' }, { status: 400, headers: corsHeaders });
-        }
-
-        let caption = '';
-        let images = [];
-        let videos = [];
-
-        if (mode === 'caption' || mode === 'all') {
-          if (!env.AI) {
-            return Response.json({ error: 'Workers AI binding (AI) is missing in wrangler.toml' }, { status: 500, headers: corsHeaders });
-          }
-          const systemPrompt = `You are an expert social media strategist. Write an engaging, high-converting post caption/description with relevant hashtags tailored for ${platforms.join(', ')}. Keep it punchy and ready to publish without quotes or intro text.`;
-          const textResult = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: prompt }
-            ]
-          });
-          caption = textResult.response?.trim() || '';
-        }
-
-        if ((mode === 'images' || mode === 'all') && env.AI) {
-          const styleVariations = [
-            `Clean modern commercial photography, studio lighting, high detail: ${prompt}`,
-            `Bold vibrant social media promotional visual, dynamic angle, crisp focus: ${prompt}`,
-            `Minimalist aesthetic lifestyle shot, natural warm lighting, 4k: ${prompt}`,
-            `Dramatic high-contrast editorial poster aesthetic, cinematic lighting: ${prompt}`
-          ];
-
-          const imagePromises = styleVariations.map(async (variantPrompt, idx) => {
-            try {
-              const stream = await env.AI.run('@cf/bytedance/stable-diffusion-xl-lightning', { prompt: variantPrompt });
-              const arrayBuffer = await new Response(stream).arrayBuffer();
-              const bytes = new Uint8Array(arrayBuffer);
-              let binary = '';
-              for (let i = 0; i < bytes.byteLength; i++) {
-                binary += String.fromCharCode(bytes[i]);
-              }
-              return {
-                id: `ai_img_${Date.now()}_${idx}`,
-                type: 'image',
-                label: `AI Style ${idx + 1}`,
-                url: `data:image/png;base64,${btoa(binary)}`
-              };
-            } catch {
-              return null;
-            }
-          });
-
-          const generated = await Promise.all(imagePromises);
-          images = generated.filter(Boolean);
-        }
-
-        if (mode === 'videos' || mode === 'all') {
-          videos = [
-            {
-              id: 'sample_vid_1',
-              type: 'video',
-              label: 'Vertical Promo Loop 1 (MP4)',
-              url: 'https://assets.mixkit.co/videos/preview/mixkit-man-exercising-with-dumbbells-in-a-gym-43479-large.mp4'
-            },
-            {
-              id: 'sample_vid_2',
-              type: 'video',
-              label: 'Dynamic Fitness / Action Clip 2 (MP4)',
-              url: 'https://assets.mixkit.co/videos/preview/mixkit-woman-running-on-a-treadmill-in-a-gym-43483-large.mp4'
-            },
-            {
-              id: 'sample_vid_3',
-              type: 'video',
-              label: 'Modern Workspace / Brand Clip 3 (MP4)',
-              url: 'https://assets.mixkit.co/videos/preview/mixkit-hands-of-a-man-working-on-a-laptop-4983-large.mp4'
-            },
-            {
-              id: 'sample_vid_4',
-              type: 'video',
-              label: 'Abstract Tech / Gradient Loop 4 (MP4)',
-              url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-network-connections-27611-large.mp4'
-            }
-          ];
-        }
-
-        return Response.json({ success: true, caption, images, videos }, { headers: corsHeaders });
-      } catch (err) {
-        return Response.json({ error: err.message }, { status: 500, headers: corsHeaders });
-      }
-    }
-
-    // ==========================================
-    // ROUTE 5: Posts CRUD API
-    // ==========================================
-    if (path.startsWith('/api/posts')) {
-      try {
-        if ((path === '/api/posts' || path === '/api/posts/') && request.method === 'GET') {
-          const { results } = await env.DB.prepare('SELECT * FROM posts ORDER BY scheduled_date DESC').all();
-          return Response.json(results || [], { headers: corsHeaders });
-        }
-
-        if ((path === '/api/posts' || path === '/api/posts/') && request.method === 'POST') {
+      if (request.method === 'POST') {
+        try {
           const body = await request.json();
-          const selectedPlatforms = (body.platforms || []).map(p => p.toLowerCase());
-
-          if (selectedPlatforms.length === 0) {
-            return Response.json({ error: 'Please select at least one linked social platform.' }, { status: 400, headers: corsHeaders });
-          }
-
-          const { results: linkedAccounts } = await env.DB.prepare('SELECT platform FROM accounts').all();
-          const linkedSet = new Set((linkedAccounts || []).map(a => a.platform.toLowerCase()));
-          const unlinked = selectedPlatforms.filter(p => !linkedSet.has(p));
-
-          if (unlinked.length > 0) {
-            return Response.json({ error: `Account not linked for: ${unlinked.join(', ')}. Link your account(s) first.` }, { status: 403, headers: corsHeaders });
-          }
-
-          const id = 'post_' + Date.now();
+          const id = crypto.randomUUID();
           await env.DB.prepare(
-            'INSERT INTO posts (id, brand_id, content, platforms, status, scheduled_date, media_url) VALUES (?, ?, ?, ?, ?, ?, ?)'
-          ).bind(
-            id,
-            body.brand_id || 1,
-            body.content,
-            JSON.stringify(selectedPlatforms),
-            body.status || 'queue',
-            body.scheduled_date || new Date().toISOString(),
-            body.media_url || ''
-          ).run();
-
-          return Response.json({ success: true, id }, { headers: corsHeaders });
+            "INSERT INTO posts (id, content, platforms, scheduled_date, status) VALUES (?, ?, ?, ?, ?)"
+          ).bind(id, body.content, JSON.stringify(body.platforms), body.scheduled_date, body.status || 'queue').run();
+          return Response.json({ success: true, id });
+        } catch (err) {
+          return Response.json({ error: err.message }, { status: 500 });
         }
-
-        if (request.method === 'DELETE') {
-          const id = path.split('/').pop();
-          await env.DB.prepare('DELETE FROM posts WHERE id = ?').bind(id).run();
-          return Response.json({ success: true }, { headers: corsHeaders });
-        }
-      } catch (err) {
-        return Response.json({ error: err.message }, { status: 500, headers: corsHeaders });
       }
     }
 
-    // ==========================================
-    // ROUTE 6: Serve Static Frontend (public/)
-    // ==========================================
-    return env.ASSETS.fetch(request);
-  },
+    // 2. API: Workers AI Generation (Images / Text)
+    if (path === '/api/ai/generate' && request.method === 'POST') {
+      try {
+        const { prompt, type } = await request.json();
+        if (type === 'image') {
+          const response = await env.AI.run('@cf/stabilityai/stable-diffusion-xl-base-1.0', {
+            prompt: prompt,
+            num_steps: 20,
+            width: 1024,
+            height: 1024
+          });
+          return new Response(response, { headers: { 'Content-Type': 'image/png' } });
+        } else {
+          const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+            messages: [{ role: 'user', content: prompt }]
+          });
+          return Response.json(response);
+        }
+      } catch (err) {
+        return Response.json({ error: err.message }, { status: 500 });
+      }
+    }
 
-  async scheduled(event, env, ctx) {
-    ctx.waitUntil(processScheduledPosts(env));
+    // 3. Static Assets & HTML Routing (Fallback to public assets)
+    try {
+      // Clean up clean URL routing for static HTML pages
+      let assetRequest = request;
+      if (path === '/privacypolicy') {
+        assetRequest = new Request(new URL('/privacypolicy.html', request.url), request);
+      } else if (path === '/terms') {
+        assetRequest = new Request(new URL('/terms.html', request.url), request);
+      }
+      
+      const assetResponse = await env.ASSETS.fetch(assetRequest);
+      if (assetResponse.status404 && path !== '/') {
+        // Fallback to index.html for SPA routing if needed
+        return env.ASSETS.fetch(new Request(new URL('/', request.url), request));
+      }
+      return assetResponse;
+    } catch (e) {
+      return new Response("Not Found", { status: 404 });
+    }
   }
 };
-
-async function hashPassword(password) {
-  const msgUint8 = new TextEncoder().encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function processScheduledPosts(env) {
-  const nowIso = new Date().toISOString();
-  const { results: duePosts } = await env.DB.prepare(
-    "SELECT * FROM posts WHERE status = 'queue' AND scheduled_date <= ?"
-  ).bind(nowIso).all();
-
-  let publishedCount = 0;
-  for (const post of duePosts || []) {
-    await env.DB.prepare("UPDATE posts SET status = 'sent' WHERE id = ?").bind(post.id).run();
-    publishedCount++;
-  }
-  return { checked: (duePosts || []).length, published: publishedCount };
-}
